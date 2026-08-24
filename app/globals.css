@@ -1,0 +1,376 @@
+@import "tailwindcss";
+
+/* The theme is driven by `data-theme` on <html> (see lib/theme.tsx), exactly
+   like the source's `html[data-theme="dark"]` selectors. Registering it as a
+   custom variant lets every component opt a surface into the night palette
+   with a plain `dark:` utility. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@theme {
+  /* Core palette — exact values from the source design */
+  --color-navy: #0b1f3a;
+  --color-gold: #c8a75d;
+  --color-bg: #faf8f4;
+  --color-teal: #00a8a8;
+  --color-slate: #3d4a5c;
+  --color-gray: #6b7280;
+  --color-graylight: #9aa3ae;
+  --color-red: #b4472f;
+
+  /* Dark theme surfaces */
+  --color-dark-bg: #0e1420;
+  --color-dark-surface: #101827;
+  --color-dark-surface-2: #151d2b;
+  --color-dark-header: #0d131f;
+  --color-dark-ink: #eae7e0;
+  --color-dark-ink-dim: #aeb7c4;
+  --color-dark-ink-dimmer: #8e97a5;
+  --color-dark-ink-dimmest: #7c8593;
+  --color-dark-navy: #0a1220;
+  --color-dark-line: rgba(250, 248, 244, 0.16);
+  --color-dark-fill: rgba(250, 248, 244, 0.13);
+  --color-dark-gold: #d9bc7e;
+  --color-dark-gold-2: #e4cb93;
+  --color-dark-teal: #46cfcf;
+
+  --font-sans: var(--font-ibm-plex-sans), system-ui, sans-serif;
+  --font-serif: var(--font-ibm-plex-serif), serif;
+  --font-mono: var(--font-ibm-plex-mono), monospace;
+  --font-kufi: var(--font-noto-kufi), var(--font-ibm-plex-sans), sans-serif;
+  /* Vazirmatn (used for one Persian caption on the About Qom page) is not
+     self-hosted separately — Noto Kufi Arabic renders Persian script
+     cleanly and is already loaded for the Arabic locale. */
+  --font-vazir: var(--font-noto-kufi), var(--font-ibm-plex-serif), serif;
+
+  --animate-qom-pulse: qomPulse 2.8s ease-out infinite;
+  --animate-qom-bob: qomBob 2.6s ease-in-out infinite;
+  --animate-qom-ken: qomKen 9s ease-out forwards;
+  --animate-qom-reveal: qomReveal 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  --animate-qom-flow: qomFlow 11s linear infinite;
+  --animate-qom-glow: qomGlow 5s ease-in-out infinite;
+}
+
+@keyframes qomPulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  70% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes qomBob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(7px);
+  }
+}
+@keyframes qomKen {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.12);
+  }
+}
+@keyframes qomReveal {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes qomFlow {
+  to {
+    stroke-dashoffset: -320;
+  }
+}
+@keyframes qomGlow {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+html {
+  scroll-padding-top: 96px;
+}
+body {
+  margin: 0;
+  background: var(--color-bg);
+}
+* {
+  box-sizing: border-box;
+}
+/* The source expresses these as the document default and then overrides them
+   per element with an inline `color`, which always wins. Utilities are the
+   port's equivalent of those inline styles, so the defaults live in the base
+   layer where any `text-*` utility outranks them. */
+@layer base {
+  a {
+    color: var(--color-navy);
+  }
+  a:hover {
+    color: var(--color-gold);
+  }
+}
+
+/* Scrollbar stays on the right in Arabic and Persian: only the app root flips to
+   RTL. <html> is pinned LTR (it never receives dir="rtl"), so the browser keeps
+   its scrollbar on the right; the `[data-rtl-root]` wrapper (LocaleProvider's
+   inner div, not <body>) carries the dir attribute and its computed direction
+   must follow it — the same technique as the source's inner root flip
+   (`root.style.direction = "rtl"` on `div[data-qom="2"]`, body's only child). */
+html {
+  direction: ltr;
+}
+[data-rtl-root][dir="rtl"] {
+  direction: rtl;
+}
+/* Form controls inherit the page face by default; the source overrides that
+   per control with an inline `font-family`, so a `font-*` utility must win. */
+@layer base {
+  input,
+  textarea,
+  select,
+  button {
+    font-family: inherit;
+  }
+}
+
+summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Chips, tabs and pagers each keep their label on one line and wrap as a row instead. */
+[data-chipbtn],
+[data-arch-page],
+[data-news-filters] button,
+[data-msg-filters] button,
+[data-event-filters] button,
+[data-media-tabs] button {
+  white-space: nowrap;
+}
+
+[data-card] {
+  transition: box-shadow 0.3s ease;
+}
+[data-card]:hover {
+  box-shadow: 0 22px 46px -32px rgba(11, 31, 58, 0.5);
+}
+[data-card]:hover [data-cardtitle] {
+  color: var(--color-bg) !important;
+}
+[data-card]:hover [data-cardbody] {
+  color: rgba(250, 248, 244, 0.82) !important;
+}
+[data-chipbtn]:not([data-on]):hover {
+  border-color: var(--color-gold);
+  color: var(--color-gold);
+}
+
+[data-invopt] {
+  transition: background 0.2s ease;
+}
+[data-invopt]:hover {
+  background: rgba(200, 167, 93, 0.1);
+}
+[data-invopt]:hover [data-invbox] {
+  border-color: var(--color-gold);
+}
+
+[data-invcard] [data-invpreview] {
+  opacity: 0;
+  transition: opacity 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+[data-invcard]:hover [data-invpreview] {
+  opacity: 1;
+}
+[data-invcard]:hover [data-invtitle] {
+  color: var(--color-bg) !important;
+}
+[data-invcard]:hover [data-invbody] {
+  color: rgba(250, 248, 244, 0.86) !important;
+}
+[data-invcard]:hover [data-invtag] {
+  color: var(--color-navy) !important;
+  background: var(--color-gold) !important;
+  border-color: var(--color-gold) !important;
+}
+[data-invcard]:hover [data-invlink] {
+  color: var(--color-gold) !important;
+}
+
+[data-clamp2] {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+[data-clamp3] {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+
+/* One navigation system per breakpoint: the rail on desktop, the drawer below
+   it — and below 760px the search field drops to a full-width row of its own. */
+@media (max-width: 760px) {
+  [data-header-top] {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    gap: 12px !important;
+  }
+  [data-search] {
+    order: 6;
+    flex: 1 1 100% !important;
+    max-width: none !important;
+  }
+  [data-cta] {
+    font-size: 12px !important;
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+    padding-top: 11px !important;
+    padding-bottom: 11px !important;
+  }
+}
+
+/* Newsroom: one dominant story beside a stack of four. */
+@media (max-width: 940px) {
+  [data-home-news] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  [data-home-list] {
+    grid-template-rows: none !important;
+  }
+  /* Investment marketplace: filter rail beside the card grid. */
+  [data-inv-layout] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  [data-deptd-layout] {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 44px !important;
+  }
+  [data-invdetail-body] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+@media (min-width: 941px) {
+  [data-inv-aside] {
+    position: sticky;
+    top: 132px;
+  }
+}
+
+/* Cooperation areas and the homepage ribbon hold even rows at every width. */
+@media (max-width: 1000px) {
+  [data-coop-grid] {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  [data-ribbon] {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+@media (max-width: 620px) {
+  [data-coop-grid] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  [data-ribbon] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+/* Statement cards: image, text and reference panel on one deterministic grid. */
+[data-msgcard] {
+  display: grid;
+  grid-template-columns: 216px minmax(0, 1fr) 216px;
+}
+@media (max-width: 1040px) {
+  [data-msgcard] {
+    grid-template-columns: 200px minmax(0, 1fr);
+  }
+  [data-msgmeta] {
+    grid-column: 1 / -1;
+    border-inline-start: 0 !important;
+    border-top: 1px solid rgba(11, 31, 58, 0.1);
+  }
+}
+@media (max-width: 700px) {
+  [data-msgcard] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  [data-msgimg] {
+    min-height: 190px;
+  }
+}
+
+/* ── Dark mode: a designed night palette, not an inversion ──
+   The surface/text/border repaints themselves are carried by `dark:` utilities
+   on the components (see the @custom-variant above); what stays here are the
+   source's own selector-driven rules, which key off attributes rather than a
+   single element's colour: selected controls and primary actions read gold at
+   night, form fields take the panel surface, and links take the ink colour. */
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+html[data-theme="dark"] body {
+  background: var(--color-dark-bg);
+  color: var(--color-dark-ink);
+}
+[data-theme="dark"] [data-invopt]:hover {
+  background: rgba(217, 188, 126, 0.12) !important;
+}
+/* Selected controls and primary actions read gold at night. */
+[data-theme="dark"] [data-on],
+[data-theme="dark"] [data-cta],
+[data-theme="dark"] button[type="submit"] {
+  background: var(--color-dark-gold) !important;
+  border-color: var(--color-dark-gold) !important;
+  color: var(--color-navy) !important;
+}
+[data-theme="dark"] [data-on] span,
+[data-theme="dark"] [data-cta] {
+  color: var(--color-navy) !important;
+}
+@layer base {
+  [data-theme="dark"] a {
+    color: var(--color-dark-ink);
+  }
+  [data-theme="dark"] a:hover {
+    color: var(--color-dark-gold-2);
+  }
+}
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  background: var(--color-dark-surface) !important;
+  color: var(--color-dark-ink) !important;
+}
+[data-theme="dark"] [data-chipbtn]:not([data-on]):hover {
+  border-color: var(--color-dark-gold) !important;
+  color: var(--color-dark-gold) !important;
+}
+
+/* Arabic swaps the sans + serif faces for Noto Kufi Arabic; IBM Plex Mono
+   labels (dates, eyebrows, reference numbers) stay in their original face,
+   exactly like the source's captureText/applyLanguage font-swap logic. */
+html[lang="ar"] body {
+  font-family: var(--font-kufi);
+}
+html[lang="ar"] .font-serif {
+  font-family: var(--font-kufi);
+}
