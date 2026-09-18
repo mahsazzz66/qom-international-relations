@@ -4,10 +4,31 @@ import Link from "next/link";
 import PageHero from "@/components/PageHero";
 import { useLocale } from "@/lib/i18n";
 import { DEPTS } from "@/lib/data";
+import { pickText, usePageContent } from "@/lib/pageContent/read";
+import { getPageSchema } from "@/lib/pageContent/pageSchemas";
+import type { BilingualText } from "@/lib/pageContent/schema";
+
+const DEPARTMENTS_SCHEMA = getPageSchema("departments")!;
+
+type DeptOverride = { title?: BilingualText; listing?: BilingualText; interests?: BilingualText };
 
 export default function DepartmentsPage() {
-  const { t } = useLocale();
-  const depts = DEPTS();
+  const { t, locale } = useLocale();
+  const staticDepts = DEPTS();
+  const pageData = usePageContent("departments", DEPARTMENTS_SCHEMA);
+  const overrides = pageData?.departments as DeptOverride[] | undefined;
+  const depts = staticDepts.map((d, i) => {
+    const o = overrides?.[i];
+    const interestsText = pickText(o?.interests, locale, "");
+    return {
+      ...d,
+      title: pickText(o?.title, locale, t(d.title)),
+      listing: pickText(o?.listing, locale, t(d.listing)),
+      interests: interestsText
+        ? interestsText.split("\n").map((line) => line.trim()).filter(Boolean)
+        : d.interests.map((it) => t(it)),
+    };
+  });
   return (
     <div>
       <PageHero
@@ -33,16 +54,16 @@ export default function DepartmentsPage() {
           <article key={d.id} className="grid gap-10 bg-white dark:bg-dark-surface-2 p-9.5" style={{ gridTemplateColumns: "minmax(0, 1.7fr) minmax(220px, 1fr)" }}>
             <div>
               <div className="font-mono mb-4 text-xs tracking-[.12em] text-gold">{d.no}</div>
-              <h2 className="m-0 mb-3.5 font-serif text-[25px] font-medium">{t(d.title)}</h2>
-              <p className="m-0 mb-4.5 max-w-[620px] text-[15px] leading-[1.7] text-slate dark:text-dark-ink-dim">{t(d.listing)}</p>
+              <h2 className="m-0 mb-3.5 font-serif text-[25px] font-medium">{d.title}</h2>
+              <p className="m-0 mb-4.5 max-w-[620px] text-[15px] leading-[1.7] text-slate dark:text-dark-ink-dim">{d.listing}</p>
               <Link href={`/departments/${d.id}`} className="text-[13px] font-semibold">{t("Explore Activities →")}</Link>
             </div>
             <div className="border-navy/[.12] dark:border-dark-line pl-7.5 border-l">
               <div className="font-mono mb-3 text-[10.5px] tracking-[.14em] text-gray dark:text-dark-ink-dimmer uppercase">{t("Cooperation interests")}</div>
               <div className="text-[13.5px] leading-[1.9] text-slate dark:text-dark-ink-dim">
                 {d.interests.map((it, i) => (
-                  <span key={it}>
-                    {t(it)}
+                  <span key={`${it}-${i}`}>
+                    {it}
                     {i < d.interests.length - 1 && <br />}
                   </span>
                 ))}

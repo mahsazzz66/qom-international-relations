@@ -1,12 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import PageHero from "@/components/PageHero";
 import Pagination from "@/components/Pagination";
 import InvestmentCard from "@/components/InvestmentCard";
 import { useLocale } from "@/lib/i18n";
-import { INVEST, invFilter, InvestFilters } from "@/lib/data";
+import { INVEST, invFilter, InvestFilters, InvestmentItem } from "@/lib/data";
+import { createClient } from "@/lib/supabase/client";
+import { contentItemToInvestmentItem } from "@/lib/supabase/adapters";
+import type { ContentItem } from "@/lib/supabase/types";
 
 function FilterGroup({
   title, options, active, onSelect,
@@ -51,8 +54,31 @@ function FilterGroup({
 }
 
 export default function InvestmentPage() {
-  const { t } = useLocale();
-  const data = INVEST();
+  const { t, locale } = useLocale();
+  const [liveItems, setLiveItems] = useState<ContentItem[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const supabase = createClient();
+    supabase
+      .from("content_items")
+      .select("*")
+      .eq("type", "investment")
+      .eq("published", true)
+      .order("sort_order", { ascending: false })
+      .order("created_at", { ascending: false })
+      .then(({ data: rows }) => {
+        if (!cancelled && rows) setLiveItems(rows as ContentItem[]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const data = useMemo<InvestmentItem[]>(
+    () => [...liveItems.map((it) => contentItemToInvestmentItem(it, locale)), ...INVEST()],
+    [liveItems, locale]
+  );
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const [district, setDistrict] = useState("all");
@@ -60,7 +86,7 @@ export default function InvestmentPage() {
   const [sort, setSort] = useState<InvestFilters["sort"]>("new");
   const [page, setPage] = useState(1);
 
-  const filtered = useMemo(() => invFilter({ query, category, district, status, sort }), [query, category, district, status, sort]);
+  const filtered = useMemo(() => invFilter(data, { query, category, district, status, sort }), [data, query, category, district, status, sort]);
   const perPage = 9;
   const pages = Math.max(1, Math.ceil(filtered.length / perPage));
   const currentPage = Math.min(Math.max(1, page), pages);

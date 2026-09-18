@@ -28,7 +28,7 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className={`${adminFont.className} grid min-h-screen place-items-center bg-navy px-6`} dir="rtl">
+    <div className={`${adminFont.className} admin-font-scope grid min-h-screen place-items-center bg-navy px-6`} dir="rtl">
       <div className="w-full max-w-[400px]">
         <div className="mb-8 text-center">
           <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full bg-gold/15">

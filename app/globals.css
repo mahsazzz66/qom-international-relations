@@ -374,3 +374,15 @@ html[lang="ar"] body {
 html[lang="ar"] .font-serif {
   font-family: var(--font-kufi);
 }
+
+/* The admin panel always uses its own (Vazirmatn) font, everywhere inside
+   it — including headings and labels that use the public site's .font-serif
+   / .font-mono utilities, which would otherwise keep resolving to the
+   public site's own IBM Plex / Kufi faces regardless of this scope. The
+   Arabic swap above only ever applies to the public pages. */
+.admin-font-scope,
+.admin-font-scope .font-serif,
+.admin-font-scope .font-mono,
+.admin-font-scope .font-sans {
+  font-family: var(--font-admin), "Vazirmatn", system-ui, sans-serif !important;
+}

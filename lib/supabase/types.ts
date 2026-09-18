@@ -1,4 +1,4 @@
-export type ContentType = "news" | "statement" | "event" | "photo" | "video" | "document";
+export type ContentType = "news" | "statement" | "event" | "photo" | "video" | "document" | "investment";
 
 export type ContentItem = {
   id: string;
@@ -14,6 +14,7 @@ export type ContentItem = {
   media_url: string | null;
   event_date: string | null;
   location: string | null;
+  status: string | null;
   published: boolean;
   sort_order: number;
   created_by: string | null;

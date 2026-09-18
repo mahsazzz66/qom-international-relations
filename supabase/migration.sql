@@ -54,7 +54,7 @@ create trigger on_auth_user_created
 -- (photos/videos/documents), distinguished by `type`.
 create table if not exists public.content_items (
   id uuid primary key default gen_random_uuid(),
-  type text not null check (type in ('news', 'statement', 'event', 'photo', 'video', 'document')),
+  type text not null check (type in ('news', 'statement', 'event', 'photo', 'video', 'document', 'investment')),
   category text not null default '',
   title_en text not null default '',
   title_ar text not null default '',
@@ -66,12 +66,20 @@ create table if not exists public.content_items (
   media_url text,
   event_date date,
   location text,
+  status text not null default '',
   published boolean not null default true,
   sort_order integer not null default 0,
   created_by uuid references auth.users(id),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Re-running this file on a database created before 'investment' / `status`
+-- existed: widen the type check and add the column without losing data.
+alter table public.content_items add column if not exists status text not null default '';
+alter table public.content_items drop constraint if exists content_items_type_check;
+alter table public.content_items add constraint content_items_type_check
+  check (type in ('news', 'statement', 'event', 'photo', 'video', 'document', 'investment'));
 
 create index if not exists content_items_type_idx on public.content_items (type, published, sort_order desc, created_at desc);
 

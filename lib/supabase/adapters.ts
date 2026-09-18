@@ -1,5 +1,5 @@
 import type { ContentItem } from "./types";
-import type { NewsItem } from "@/lib/data";
+import type { InvestmentItem, NewsItem } from "@/lib/data";
 
 // Adapts a database content_items row to the shape the existing site
 // components (NewsCard, MsgCard, ArchiveSection, ArticleView) already know
@@ -24,5 +24,34 @@ export function contentItemToNewsItem(item: ContentItem, locale: "en" | "ar"): N
     m,
     d,
     stamp: y * 10000 + m * 100 + d,
+  };
+}
+
+// Adapts an admin-entered investment opportunity (content_items, type
+// "investment") to the InvestmentItem shape the existing investment list,
+// card and detail components already render. A handful of display-only
+// fields the admin form doesn't collect yet (participation type, exact
+// coordinates) fall back to sensible defaults rather than blocking on them.
+export function contentItemToInvestmentItem(item: ContentItem, locale: "en" | "ar"): InvestmentItem {
+  const pick = (en: string, ar: string) => (locale === "ar" ? ar || en : en || ar);
+  const dateSource = item.event_date ? new Date(item.event_date) : new Date(item.created_at);
+  const start = { d: dateSource.getDate(), m: dateSource.getMonth() + 1, y: dateSource.getFullYear() };
+  const end = { ...start, y: start.y + 2 };
+
+  return {
+    id: item.id,
+    ref: "QOM-INV-" + item.id.slice(0, 8).toUpperCase(),
+    cat: item.category,
+    base: item.category,
+    district: item.location || "",
+    title: pick(item.title_en, item.title_ar) || "(untitled)",
+    summary: pick(item.excerpt_en, item.excerpt_ar) || pick(item.body_en, item.body_ar),
+    status: item.status || "Open for participation",
+    type: "Participation agreement",
+    start,
+    end,
+    lat: "34.6416",
+    lng: "50.8746",
+    order: 2000,
   };
 }

@@ -2,6 +2,13 @@
 
 import PageHero from "@/components/PageHero";
 import { useLocale } from "@/lib/i18n";
+import { pickText, usePageContent } from "@/lib/pageContent/read";
+import { getPageSchema } from "@/lib/pageContent/pageSchemas";
+import type { BilingualText } from "@/lib/pageContent/schema";
+
+const COOPERATION_SCHEMA = getPageSchema("cooperation")!;
+type TitleBodyOverride = { title?: BilingualText; body?: BilingualText };
+type AgreementOverride = { counterpart?: BilingualText; instrument?: BilingualText; date?: BilingualText };
 
 const AREAS = [
   { n: "01", title: "Urban management", body: "Municipal services, environment, waste and green space practice.", color: "#C8A75D", icon: <><path d="M3 20h18" /><path d="M6 20V9l6-4 6 4v11" /><path d="M10 14h4v6h-4z" /></> },
@@ -26,13 +33,40 @@ const STEPS = [
 ];
 
 export default function CooperationPage() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
+  const pageData = usePageContent("cooperation", COOPERATION_SCHEMA);
+  const heroTitle = pickText(pageData?.hero_title as BilingualText | undefined, locale, t("International Cooperation"));
+  const heroDescription = pickText(
+    pageData?.hero_description as BilingualText | undefined,
+    locale,
+    t("How Qom Municipality enters into, structures and maintains cooperation with cities and institutions abroad.")
+  );
+  const areaOverrides = pageData?.areas as TitleBodyOverride[] | undefined;
+  const areas =
+    areaOverrides && areaOverrides.length > 0
+      ? areaOverrides.map((o, i) => ({
+          title: pickText(o.title, locale, AREAS[i] ? t(AREAS[i].title) : ""),
+          body: pickText(o.body, locale, AREAS[i] ? t(AREAS[i].body) : ""),
+          color: AREAS[i]?.color ?? AREAS[0].color,
+          icon: AREAS[i]?.icon ?? AREAS[0].icon,
+          n: AREAS[i]?.n ?? String(i + 1).padStart(2, "0"),
+        }))
+      : AREAS.map((a) => ({ title: t(a.title), body: t(a.body), color: a.color, icon: a.icon, n: a.n }));
+  const agreementOverrides = pageData?.agreements as AgreementOverride[] | undefined;
+  const agreements =
+    agreementOverrides && agreementOverrides.length > 0
+      ? agreementOverrides.map((o, i) => [
+          pickText(o.counterpart, locale, AGREEMENTS[i] ? t(AGREEMENTS[i][0]) : ""),
+          pickText(o.instrument, locale, AGREEMENTS[i] ? t(AGREEMENTS[i][1]) : ""),
+          pickText(o.date, locale, AGREEMENTS[i] ? t(AGREEMENTS[i][2]) : ""),
+        ] as [string, string, string])
+      : AGREEMENTS.map(([a, b, c]) => [t(a), t(b), t(c)] as [string, string, string]);
   return (
     <div>
       <PageHero
         page="cooperation"
-        title={t("International Cooperation")}
-        description={t("How Qom Municipality enters into, structures and maintains cooperation with cities and institutions abroad.")}
+        title={heroTitle}
+        description={heroDescription}
         icon={
           <svg viewBox="0 0 200 140" width="100%" fill="none" stroke="#C8A75D" strokeWidth={1.1} strokeLinecap="round" strokeLinejoin="round">
             <circle cx="92" cy="70" r="50" />
@@ -51,12 +85,12 @@ export default function CooperationPage() {
         <div className="font-mono mb-3.5 text-[11px] tracking-[.2em] text-gray dark:text-dark-ink-dimmer uppercase">{t("Where we work together")}</div>
         <h2 className="m-0 mb-8 font-serif font-medium" style={{ fontSize: "clamp(26px, 2.6vw, 36px)" }}>{t("Cooperation Areas")}</h2>
         <div data-coop-grid className="mb-18 grid items-stretch gap-5.5" style={{ gridTemplateColumns: "repeat(3, minmax(0, 1fr))" }}>
-          {AREAS.map((a) => (
-            <article key={a.title} className="grid content-start gap-3.5 border border-navy/10 dark:border-dark-line bg-white dark:bg-dark-surface-2 px-7 pt-7.5 pb-8 shadow-[0_1px_2px_rgba(11,31,58,.04)] transition-all hover:-translate-y-0.5 hover:border-gold/55 hover:shadow-[0_20px_40px_-26px_rgba(11,31,58,.34)]">
+          {areas.map((a, i) => (
+            <article key={`${a.title}-${i}`} className="grid content-start gap-3.5 border border-navy/10 dark:border-dark-line bg-white dark:bg-dark-surface-2 px-7 pt-7.5 pb-8 shadow-[0_1px_2px_rgba(11,31,58,.04)] transition-all hover:-translate-y-0.5 hover:border-gold/55 hover:shadow-[0_20px_40px_-26px_rgba(11,31,58,.34)]">
               <span className="block h-5.5" style={{ color: a.color }}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round">{a.icon}</svg></span>
               <div className="font-mono text-[9.5px] tracking-[.18em] text-gray dark:text-dark-ink-dimmer uppercase">{t("Area " + a.n)}</div>
-              <h3 className="m-0 font-serif text-xl leading-[1.3] font-medium text-navy dark:text-dark-ink">{t(a.title)}</h3>
-              <p className="m-0 text-sm leading-[1.7] text-slate dark:text-dark-ink-dim text-pretty">{t(a.body)}</p>
+              <h3 className="m-0 font-serif text-xl leading-[1.3] font-medium text-navy dark:text-dark-ink">{a.title}</h3>
+              <p className="m-0 text-sm leading-[1.7] text-slate dark:text-dark-ink-dim text-pretty">{a.body}</p>
             </article>
           ))}
         </div>
@@ -67,9 +101,9 @@ export default function CooperationPage() {
           <div className="font-mono grid gap-5 bg-navy dark:bg-dark-navy px-6.5 py-4.5 text-[10.5px] tracking-[.14em] text-gold uppercase" style={{ gridTemplateColumns: "minmax(0,1.6fr) minmax(0,1fr) minmax(0,1fr)" }}>
             <div>{t("Counterpart")}</div><div>{t("Instrument")}</div><div>{t("Date")}</div>
           </div>
-          {AGREEMENTS.map((row, i) => (
+          {agreements.map((row, i) => (
             <div key={i} className="grid gap-5 border-b border-navy/10 dark:border-dark-line bg-white dark:bg-dark-surface-2 px-6.5 py-5.5 text-sm last:border-b-0" style={{ gridTemplateColumns: "minmax(0,1.6fr) minmax(0,1fr) minmax(0,1fr)" }}>
-              <div>{t(row[0])}</div><div>{t(row[1])}</div><div className="text-gray dark:text-dark-ink-dimmer">{t(row[2])}</div>
+              <div>{row[0]}</div><div>{row[1]}</div><div className="text-gray dark:text-dark-ink-dimmer">{row[2]}</div>
             </div>
           ))}
         </div>

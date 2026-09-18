@@ -166,6 +166,105 @@ export const PAGE_SCHEMAS: PageSchema[] = [
       },
     ],
   },
+  {
+    page: "departments",
+    title: "دپارتمان‌های شهرداری",
+    description: "توضیح هر دپارتمان و حوزه‌های همکاری بین‌المللی آن.",
+    fields: [
+      {
+        key: "departments",
+        label: "دپارتمان‌ها",
+        type: "list",
+        itemLabel: "دپارتمان",
+        fields: [
+          { key: "title", label: "عنوان", type: "text" },
+          { key: "listing", label: "توضیح", type: "textarea" },
+          { key: "interests", label: "حوزه‌های همکاری (هر مورد در یک خط جدید)", type: "textarea" },
+        ],
+      },
+    ],
+  },
+  {
+    page: "memberships",
+    title: "عضویت‌ها و شبکه‌های بین‌المللی",
+    description: "سازمان‌ها و شبکه‌هایی که شهرداری قم در آن‌ها عضو است.",
+    fields: [
+      { key: "hero_title", label: "عنوان اصلی صفحه", type: "text" },
+      { key: "hero_description", label: "توضیح زیر عنوان", type: "textarea" },
+      {
+        key: "orgs",
+        label: "سازمان‌های عضو",
+        type: "list",
+        itemLabel: "سازمان",
+        fields: [
+          { key: "name", label: "نام سازمان", type: "text" },
+          { key: "body", label: "توضیح", type: "textarea" },
+        ],
+      },
+    ],
+  },
+  {
+    page: "culture",
+    title: "هفته‌های فرهنگی و جشنواره‌ها",
+    description: "رویداد فرهنگی اصلی و فهرست جشنواره‌ها.",
+    fields: [
+      { key: "hero_title", label: "عنوان اصلی صفحه", type: "text" },
+      { key: "hero_description", label: "توضیح زیر عنوان", type: "textarea" },
+      {
+        key: "festivals",
+        label: "جشنواره‌ها",
+        type: "list",
+        itemLabel: "جشنواره",
+        fields: [
+          { key: "status", label: "وضعیت (مثلاً Upcoming / Ongoing / Completed)", type: "text" },
+          { key: "title", label: "عنوان", type: "text" },
+          { key: "theme", label: "موضوع", type: "text" },
+          { key: "location", label: "مکان", type: "text" },
+          { key: "body", label: "توضیح", type: "textarea" },
+        ],
+      },
+    ],
+  },
+  {
+    page: "cooperation",
+    title: "همکاری‌های بین‌المللی",
+    description: "حوزه‌های همکاری، توافق‌نامه‌ها و مراحل همکاری با شهرداری قم.",
+    fields: [
+      { key: "hero_title", label: "عنوان اصلی صفحه", type: "text" },
+      { key: "hero_description", label: "توضیح زیر عنوان", type: "textarea" },
+      {
+        key: "areas",
+        label: "حوزه‌های همکاری",
+        type: "list",
+        itemLabel: "حوزه",
+        fields: [
+          { key: "title", label: "عنوان", type: "text" },
+          { key: "body", label: "توضیح", type: "textarea" },
+        ],
+      },
+      {
+        key: "agreements",
+        label: "توافق‌نامه‌ها",
+        type: "list",
+        itemLabel: "توافق‌نامه",
+        fields: [
+          { key: "counterpart", label: "طرف مقابل", type: "text" },
+          { key: "instrument", label: "نوع سند", type: "text" },
+          { key: "date", label: "تاریخ", type: "text" },
+        ],
+      },
+    ],
+  },
+  {
+    page: "contact",
+    title: "اطلاعات تماس",
+    description: "آدرس، ایمیل و شماره تماس دفتر روابط بین‌الملل.",
+    fields: [
+      { key: "address", label: "آدرس", type: "textarea" },
+      { key: "email", label: "ایمیل رسمی", type: "text" },
+      { key: "phone", label: "شماره تماس", type: "text" },
+    ],
+  },
 ];
 
 export function getPageSchema(page: string): PageSchema | undefined {

@@ -8,14 +8,16 @@ type FieldConfig = {
   showBody?: boolean;
   showEventDate?: boolean;
   showLocation?: boolean;
+  locationLabel?: string;
   showImage?: boolean;
   showMediaUrl?: boolean;
   mediaUrlLabel?: string;
   mediaAccept?: string;
   mediaUrlMode?: "upload" | "link";
+  statusOptions?: string[];
 };
 
-const emptyDraft = (type: ContentType, categories: string[]): Partial<ContentItem> => ({
+const emptyDraft = (type: ContentType, categories: string[], statusOptions?: string[]): Partial<ContentItem> => ({
   type,
   category: categories[0] ?? "",
   title_en: "",
@@ -28,6 +30,7 @@ const emptyDraft = (type: ContentType, categories: string[]): Partial<ContentIte
   media_url: null,
   event_date: null,
   location: "",
+  status: statusOptions?.[0] ?? "",
   published: true,
 });
 
@@ -132,7 +135,7 @@ export default function ContentManager({
           <p className="mt-1 text-sm text-gray">{items.length} مورد</p>
         </div>
         <button
-          onClick={() => setEditing(emptyDraft(type, categories))}
+          onClick={() => setEditing(emptyDraft(type, categories, fields.statusOptions))}
           className="rounded-lg bg-navy px-4 py-2.5 text-[13px] font-semibold text-white hover:opacity-90"
         >
           + افزودن مورد جدید
@@ -310,7 +313,7 @@ export default function ContentManager({
                   )}
                   {fields.showLocation && (
                     <div>
-                      <label className="mb-1.5 block text-[13px] font-medium text-navy">مکان</label>
+                      <label className="mb-1.5 block text-[13px] font-medium text-navy">{fields.locationLabel ?? "مکان"}</label>
                       <input
                         value={editing.location ?? ""}
                         onChange={(e) => setEditing({ ...editing, location: e.target.value })}
@@ -318,6 +321,21 @@ export default function ContentManager({
                       />
                     </div>
                   )}
+                </div>
+              )}
+
+              {fields.statusOptions && (
+                <div>
+                  <label className="mb-1.5 block text-[13px] font-medium text-navy">وضعیت</label>
+                  <select
+                    value={editing.status ?? fields.statusOptions[0]}
+                    onChange={(e) => setEditing({ ...editing, status: e.target.value })}
+                    className="w-full rounded-lg border border-navy/15 px-3.5 py-2.5 text-sm outline-none focus:border-gold"
+                  >
+                    {fields.statusOptions.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
                 </div>
               )}
 

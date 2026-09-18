@@ -273,9 +273,9 @@ export interface InvestFilters {
   sort?: "new" | "az" | "cat" | "district";
 }
 
-export function invFilter(f: InvestFilters): InvestmentItem[] {
+export function invFilter(data: InvestmentItem[], f: InvestFilters): InvestmentItem[] {
   const q = String(f.query || "").trim().toLowerCase();
-  const out = INVEST().filter(
+  const out = data.filter(
     (it) =>
       (f.category || "all") === "all" || it.cat === f.category
   ).filter(

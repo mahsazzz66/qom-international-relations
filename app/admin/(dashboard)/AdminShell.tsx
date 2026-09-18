@@ -12,6 +12,7 @@ const NAV = [
   { href: "/admin/news", label: "اخبار", icon: "M4 5h16v14H4zM8 9h8M8 13h8M8 17h4" },
   { href: "/admin/statements", label: "بیانیه‌ها و پیام‌ها", icon: "M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" },
   { href: "/admin/events", label: "رویدادها", icon: "M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" },
+  { href: "/admin/investment", label: "فرصت‌های سرمایه‌گذاری", icon: "M3 20V12M8.7 20V7M14.3 20v-9M20 20V4M2 20h20" },
   { href: "/admin/media", label: "رسانه (عکس/ویدیو/سند)", icon: "M4 4h16v16H4zM4 15l4-4 4 4 4-6 4 5" },
   { href: "/admin/staff", label: "پرسنل و دسترسی‌ها", icon: "M17 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75", adminOnly: true },
 ];
@@ -33,7 +34,7 @@ export default function AdminShell({
   const items = NAV.filter((n) => !n.adminOnly || role === "admin");
 
   return (
-    <div dir="rtl" className={`${adminFont.className} min-h-screen bg-bg`}>
+    <div dir="rtl" className={`${adminFont.className} admin-font-scope min-h-screen bg-bg`}>
       {/* Mobile top bar */}
       <div className="flex items-center justify-between border-b border-navy/10 bg-white px-4 py-3 md:hidden">
         <span className="font-serif text-lg font-medium text-navy">پنل مدیریت</span>
