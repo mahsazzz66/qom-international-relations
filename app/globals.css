@@ -379,10 +379,19 @@ html[lang="ar"] .font-serif {
    it — including headings and labels that use the public site's .font-serif
    / .font-mono utilities, which would otherwise keep resolving to the
    public site's own IBM Plex / Kufi faces regardless of this scope. The
-   Arabic swap above only ever applies to the public pages. */
+   Arabic swap above only ever applies to the public pages.
+   Note: this intentionally names the font literally ("Vazirmatn") rather
+   than through a --font-admin CSS variable. next/font only defines that
+   variable on elements carrying the font's `.variable` class; AdminShell
+   and the login page only apply `.className`, so a var()-based reference
+   here resolved to an empty custom property, which made the whole
+   font-family value invalid at compute time and silently fell back to the
+   inherited body font. "Vazirmatn" is the literal @font-face family name
+   next/font already injects for adminFont, so referencing it directly
+   works regardless of which of the two classes is applied. */
 .admin-font-scope,
 .admin-font-scope .font-serif,
 .admin-font-scope .font-mono,
 .admin-font-scope .font-sans {
-  font-family: var(--font-admin), "Vazirmatn", system-ui, sans-serif !important;
+  font-family: "Vazirmatn", system-ui, sans-serif !important;
 }
