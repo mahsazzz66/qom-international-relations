@@ -15,9 +15,19 @@ type FieldConfig = {
   mediaAccept?: string;
   mediaUrlMode?: "upload" | "link";
   statusOptions?: string[];
+  // Extra fields specific to investment opportunities: participation type,
+  // an end date alongside the existing start date, and map coordinates —
+  // previously fixed defaults in the adapter, now editable per item.
+  showInvestmentDetails?: boolean;
+  investmentTypeOptions?: string[];
 };
 
-const emptyDraft = (type: ContentType, categories: string[], statusOptions?: string[]): Partial<ContentItem> => ({
+const emptyDraft = (
+  type: ContentType,
+  categories: string[],
+  statusOptions?: string[],
+  investmentTypeOptions?: string[]
+): Partial<ContentItem> => ({
   type,
   category: categories[0] ?? "",
   title_en: "",
@@ -31,6 +41,10 @@ const emptyDraft = (type: ContentType, categories: string[], statusOptions?: str
   event_date: null,
   location: "",
   status: statusOptions?.[0] ?? "",
+  end_date: null,
+  investment_type: investmentTypeOptions?.[0] ?? "",
+  lat: "34.6416",
+  lng: "50.8746",
   published: true,
 });
 
@@ -135,7 +149,7 @@ export default function ContentManager({
           <p className="mt-1 text-sm text-gray">{items.length} مورد</p>
         </div>
         <button
-          onClick={() => setEditing(emptyDraft(type, categories, fields.statusOptions))}
+          onClick={() => setEditing(emptyDraft(type, categories, fields.statusOptions, fields.investmentTypeOptions))}
           className="rounded-lg bg-navy px-4 py-2.5 text-[13px] font-semibold text-white hover:opacity-90"
         >
           + افزودن مورد جدید
@@ -336,6 +350,65 @@ export default function ContentManager({
                       <option key={s} value={s}>{s}</option>
                     ))}
                   </select>
+                </div>
+              )}
+
+              {fields.showInvestmentDetails && (
+                <div className="grid gap-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className="mb-1.5 block text-[13px] font-medium text-navy">تاریخ پایان مشارکت</label>
+                      <input
+                        type="date"
+                        value={editing.end_date ?? ""}
+                        onChange={(e) => setEditing({ ...editing, end_date: e.target.value })}
+                        className="w-full rounded-lg border border-navy/15 px-3.5 py-2.5 text-sm outline-none focus:border-gold"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-[13px] font-medium text-navy">نوع مشارکت</label>
+                      {fields.investmentTypeOptions ? (
+                        <select
+                          value={editing.investment_type ?? fields.investmentTypeOptions[0]}
+                          onChange={(e) => setEditing({ ...editing, investment_type: e.target.value })}
+                          className="w-full rounded-lg border border-navy/15 px-3.5 py-2.5 text-sm outline-none focus:border-gold"
+                        >
+                          {fields.investmentTypeOptions.map((s) => (
+                            <option key={s} value={s}>{s}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          value={editing.investment_type ?? ""}
+                          onChange={(e) => setEditing({ ...editing, investment_type: e.target.value })}
+                          className="w-full rounded-lg border border-navy/15 px-3.5 py-2.5 text-sm outline-none focus:border-gold"
+                        />
+                      )}
+                    </div>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label dir="ltr" className="mb-1.5 block text-[13px] font-medium text-navy">Latitude</label>
+                      <input
+                        dir="ltr"
+                        value={editing.lat ?? ""}
+                        onChange={(e) => setEditing({ ...editing, lat: e.target.value })}
+                        className="w-full rounded-lg border border-navy/15 px-3.5 py-2.5 text-sm outline-none focus:border-gold"
+                      />
+                    </div>
+                    <div>
+                      <label dir="ltr" className="mb-1.5 block text-[13px] font-medium text-navy">Longitude</label>
+                      <input
+                        dir="ltr"
+                        value={editing.lng ?? ""}
+                        onChange={(e) => setEditing({ ...editing, lng: e.target.value })}
+                        className="w-full rounded-lg border border-navy/15 px-3.5 py-2.5 text-sm outline-none focus:border-gold"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-[12px] text-gray">
+                    مختصات پیش‌فرض روی مرکز شهر قم تنظیم شده؛ اگر پروژه در محل دیگری است می‌تونی عرض/طول جغرافیایی دقیق‌تر رو اینجا وارد کنی.
+                  </p>
                 </div>
               )}
 

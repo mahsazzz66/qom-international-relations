@@ -57,6 +57,26 @@ export const PAGE_SCHEMAS: PageSchema[] = [
       },
       { key: "pcwg_heading", label: "عنوان بخش کارگروه شهرهای زیارتی", type: "text" },
       { key: "pcwg_mandate", label: "توضیح مأموریت کارگروه", type: "textarea" },
+      {
+        key: "pcwg_current_members",
+        label: "شهرهای عضو فعلی (نمای کوچک صفحه اصلی)",
+        type: "list",
+        itemLabel: "گروه کشور",
+        fields: [
+          { key: "label", label: "کشور(ها)", type: "text" },
+          { key: "cities", label: "شهرها", type: "text" },
+        ],
+      },
+      {
+        key: "pcwg_proposed_members",
+        label: "شهرهای پیشنهادی/آینده (نمای کوچک صفحه اصلی)",
+        type: "list",
+        itemLabel: "گروه کشور",
+        fields: [
+          { key: "label", label: "کشور(ها)", type: "text" },
+          { key: "cities", label: "شهرها", type: "text" },
+        ],
+      },
     ],
   },
   {
@@ -292,6 +312,8 @@ export const PAGE_SCHEMAS: PageSchema[] = [
           { key: "meta", label: "نوع بازدیدکننده", type: "text" },
         ],
       },
+      { key: "visitor_types", label: "گزینه‌های «نوع بازدیدکننده» (هر مورد در یک خط جدید)", type: "textarea" },
+      { key: "experience_types", label: "گزینه‌های «تجربه بازدید شامل چه بود» (هر مورد در یک خط جدید)", type: "textarea" },
     ],
   },
   {
@@ -310,6 +332,10 @@ export const PAGE_SCHEMAS: PageSchema[] = [
           { key: "listing", label: "توضیح (در فهرست دپارتمان‌ها)", type: "textarea" },
           { key: "mission", label: "توضیح (در صفحه اختصاصی دپارتمان)", type: "textarea" },
           { key: "interests", label: "حوزه‌های همکاری (هر مورد در یک خط جدید)", type: "textarea" },
+          { key: "overview", label: "نمای کلی دپارتمان (هر پاراگراف در یک خط جدید)", type: "textarea" },
+          { key: "projects", label: "پروژه‌های بین‌المللی (هر مورد در یک خط جدید)", type: "textarea" },
+          { key: "partners", label: "شرکای بین‌المللی (هر مورد در یک خط جدید)", type: "textarea" },
+          { key: "meetings", label: "جلسات و هیئت‌ها (هر مورد در یک خط جدید)", type: "textarea" },
         ],
       },
     ],
@@ -405,6 +431,25 @@ export const PAGE_SCHEMAS: PageSchema[] = [
         fields: [
           { key: "q", label: "سوال", type: "text" },
           { key: "a", label: "پاسخ", type: "textarea" },
+        ],
+      },
+    ],
+  },
+  {
+    page: "investment",
+    url: "/investment",
+    title: "منابع سرمایه‌گذاری",
+    description: "فهرست «منابع سرمایه‌گذار» پایین صفحه فرصت‌های سرمایه‌گذاری (بروشورها و راهنماها). خودِ فرصت‌های سرمایه‌گذاری را از «فرصت‌های سرمایه‌گذاری» در پنل ویرایش کن.",
+    fields: [
+      {
+        key: "resources",
+        label: "منابع سرمایه‌گذار",
+        type: "list",
+        itemLabel: "منبع",
+        fields: [
+          { key: "category", label: "دسته", type: "text" },
+          { key: "title", label: "عنوان", type: "text" },
+          { key: "href", label: "لینک (اختیاری، پیش‌فرض صفحه رسانه‌ها)", type: "text" },
         ],
       },
     ],

@@ -39,6 +39,14 @@ export default function FeedbackPage() {
           meta: pickText(o.meta, locale, TESTIMONIALS[i] ? t(TESTIMONIALS[i].meta) : ""),
         }))
       : TESTIMONIALS.map((ts) => ({ quote: t(ts.quote), meta: t(ts.meta) }));
+  const visitorTypesText = pickText(pageData?.visitor_types as BilingualText | undefined, locale, "");
+  const visitorTypes = visitorTypesText
+    ? visitorTypesText.split("\n").map((l) => l.trim()).filter(Boolean)
+    : VISITOR_TYPES.map((v) => t(v));
+  const experienceTypesText = pickText(pageData?.experience_types as BilingualText | undefined, locale, "");
+  const experienceTypes = experienceTypesText
+    ? experienceTypesText.split("\n").map((l) => l.trim()).filter(Boolean)
+    : EXPERIENCE_TYPES.map((v) => t(v));
   const [rating, setRating] = useState(0);
   const [types, setTypes] = useState<string[]>([]);
   const [experience, setExperience] = useState<string[]>([]);
@@ -140,10 +148,10 @@ export default function FeedbackPage() {
             <div className="grid gap-3">
               <div className="text-[11.5px] tracking-[.14em] text-gray dark:text-dark-ink-dimmer uppercase">{t("I am a")}</div>
               <div className="flex flex-wrap gap-2.5">
-                {VISITOR_TYPES.map((v) => (
+                {visitorTypes.map((v) => (
                   <label key={v} className={chipClass(types.includes(v))}>
                     <input type="checkbox" checked={types.includes(v)} onChange={() => toggle(types, setTypes, v)} className="h-[15px] w-[15px] accent-gold" />
-                    {t(v)}
+                    {v}
                   </label>
                 ))}
               </div>
@@ -152,10 +160,10 @@ export default function FeedbackPage() {
             <div className="grid gap-3">
               <div className="text-[11.5px] tracking-[.14em] text-gray dark:text-dark-ink-dimmer uppercase">{t("What did your visit involve?")}</div>
               <div className="flex flex-wrap gap-2.5">
-                {EXPERIENCE_TYPES.map((v) => (
+                {experienceTypes.map((v) => (
                   <label key={v} className={chipClass(experience.includes(v))}>
                     <input type="checkbox" checked={experience.includes(v)} onChange={() => toggle(experience, setExperience, v)} className="h-[15px] w-[15px] accent-gold" />
-                    {t(v)}
+                    {v}
                   </label>
                 ))}
               </div>

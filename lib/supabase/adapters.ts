@@ -36,7 +36,10 @@ export function contentItemToInvestmentItem(item: ContentItem, locale: "en" | "a
   const pick = (en: string, ar: string) => (locale === "ar" ? ar || en : en || ar);
   const dateSource = item.event_date ? new Date(item.event_date) : new Date(item.created_at);
   const start = { d: dateSource.getDate(), m: dateSource.getMonth() + 1, y: dateSource.getFullYear() };
-  const end = { ...start, y: start.y + 2 };
+  const endSource = item.end_date ? new Date(item.end_date) : null;
+  const end = endSource
+    ? { d: endSource.getDate(), m: endSource.getMonth() + 1, y: endSource.getFullYear() }
+    : { ...start, y: start.y + 2 };
 
   return {
     id: item.id,
@@ -47,11 +50,11 @@ export function contentItemToInvestmentItem(item: ContentItem, locale: "en" | "a
     title: pick(item.title_en, item.title_ar) || "(untitled)",
     summary: pick(item.excerpt_en, item.excerpt_ar) || pick(item.body_en, item.body_ar),
     status: item.status || "Open for participation",
-    type: "Participation agreement",
+    type: item.investment_type || "Participation agreement",
     start,
     end,
-    lat: "34.6416",
-    lng: "50.8746",
+    lat: item.lat || "34.6416",
+    lng: item.lng || "50.8746",
     order: 2000,
   };
 }

@@ -67,6 +67,10 @@ create table if not exists public.content_items (
   event_date date,
   location text,
   status text not null default '',
+  end_date date,
+  investment_type text,
+  lat text,
+  lng text,
   published boolean not null default true,
   sort_order integer not null default 0,
   created_by uuid references auth.users(id),
@@ -80,6 +84,13 @@ alter table public.content_items add column if not exists status text not null d
 alter table public.content_items drop constraint if exists content_items_type_check;
 alter table public.content_items add constraint content_items_type_check
   check (type in ('news', 'statement', 'event', 'photo', 'video', 'document', 'investment'));
+
+-- Re-running this file on a database created before the investment detail
+-- fields existed: add them without losing data.
+alter table public.content_items add column if not exists end_date date;
+alter table public.content_items add column if not exists investment_type text;
+alter table public.content_items add column if not exists lat text;
+alter table public.content_items add column if not exists lng text;
 
 create index if not exists content_items_type_idx on public.content_items (type, published, sort_order desc, created_at desc);
 

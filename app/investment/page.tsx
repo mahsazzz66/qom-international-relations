@@ -10,6 +10,13 @@ import { INVEST, invFilter, InvestFilters, InvestmentItem } from "@/lib/data";
 import { createClient } from "@/lib/supabase/client";
 import { contentItemToInvestmentItem } from "@/lib/supabase/adapters";
 import type { ContentItem } from "@/lib/supabase/types";
+import { pickText, usePageContent } from "@/lib/pageContent/read";
+import { getPageSchema } from "@/lib/pageContent/pageSchemas";
+import type { BilingualText } from "@/lib/pageContent/schema";
+
+const INVESTMENT_SCHEMA = getPageSchema("investment")!;
+
+type ResourceOverride = { category?: BilingualText; title?: BilingualText; href?: BilingualText };
 
 function FilterGroup({
   title, options, active, onSelect,
@@ -53,9 +60,25 @@ function FilterGroup({
   );
 }
 
+const RESOURCES_DEFAULT: { category: string; title: string; href: string }[] = [
+  { category: "Portfolio", title: "[Investment portfolio brochure]", href: "/media" },
+  { category: "Procedure", title: "[Guide for international investors]", href: "/media" },
+  { category: "Legal", title: "[Municipal participation framework]", href: "/media" },
+];
+
 export default function InvestmentPage() {
   const { t, locale } = useLocale();
   const [liveItems, setLiveItems] = useState<ContentItem[]>([]);
+  const pageData = usePageContent("investment", INVESTMENT_SCHEMA);
+  const resourceOverrides = pageData?.resources as ResourceOverride[] | undefined;
+  const resources =
+    resourceOverrides && resourceOverrides.length > 0
+      ? resourceOverrides.map((o, i) => ({
+          category: pickText(o.category, locale, RESOURCES_DEFAULT[i] ? t(RESOURCES_DEFAULT[i].category) : ""),
+          title: pickText(o.title, locale, RESOURCES_DEFAULT[i] ? t(RESOURCES_DEFAULT[i].title) : ""),
+          href: pickText(o.href, locale, "") || RESOURCES_DEFAULT[i]?.href || "/media",
+        }))
+      : RESOURCES_DEFAULT.map((r) => ({ category: t(r.category), title: t(r.title), href: r.href }));
 
   useEffect(() => {
     let cancelled = false;
@@ -220,15 +243,11 @@ export default function InvestmentPage() {
         <div className="mt-21.5 border-t border-navy/10 dark:border-dark-line pt-19">
           <h2 className="m-0 mb-6.5 font-serif font-medium" style={{ fontSize: "clamp(26px, 2.6vw, 36px)" }}>{t("Investor resources")}</h2>
           <div className="grid gap-px border border-navy/[.12] dark:border-dark-line bg-navy/[.12] dark:bg-dark-fill" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}>
-            {[
-              ["Portfolio", "[Investment portfolio brochure]"],
-              ["Procedure", "[Guide for international investors]"],
-              ["Legal", "[Municipal participation framework]"],
-            ].map(([cat, title]) => (
-              <div key={title} className="bg-white dark:bg-dark-surface-2 p-7">
-                <div className="mb-3 text-[11.5px] tracking-[.14em] text-teal dark:text-dark-teal uppercase">{t(cat)}</div>
-                <h3 className="m-0 mb-2.5 font-serif text-lg font-medium">{t(title)}</h3>
-                <Link href="/media" className="text-[13px] font-semibold">{t("Download PDF →")}</Link>
+            {resources.map((r, i) => (
+              <div key={`${r.title}-${i}`} className="bg-white dark:bg-dark-surface-2 p-7">
+                <div className="mb-3 text-[11.5px] tracking-[.14em] text-teal dark:text-dark-teal uppercase">{r.category}</div>
+                <h3 className="m-0 mb-2.5 font-serif text-lg font-medium">{r.title}</h3>
+                <Link href={r.href} className="text-[13px] font-semibold">{t("Download PDF →")}</Link>
               </div>
             ))}
           </div>

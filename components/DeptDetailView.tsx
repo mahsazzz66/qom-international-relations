@@ -11,18 +11,6 @@ import { resolveDept, type DeptOverride } from "@/lib/pageContent/departments";
 
 const DEPARTMENTS_SCHEMA = getPageSchema("departments")!;
 
-const OVERVIEW = [
-  "[Overview of the deputy department, its municipal mandate and the services it is responsible for.]",
-  "[How the department works with counterparts abroad, coordinated through the International Relations Office.]",
-];
-const PROJECTS = [
-  "[International project of the department — first]",
-  "[International project of the department — second]",
-  "[International project of the department — third]",
-];
-const PARTNERS = ["[Partner municipality]", "[International municipal network]", "[Technical cooperation programme]"];
-const MEETINGS = ["[Meeting with a partner city delegation]", "[Working session with counterparts abroad]", "[Delegation hosted by the department in Qom]"];
-
 export default function DeptDetailView({ dept: staticDept }: { dept: Dept }) {
   const { t, locale } = useLocale();
   const { theme } = useTheme();
@@ -70,8 +58,8 @@ export default function DeptDetailView({ dept: staticDept }: { dept: Dept }) {
           <div className="font-mono mb-3.5 text-[11px] tracking-[.2em] text-gray dark:text-dark-ink-dimmer uppercase">{t("Mandate")}</div>
           <h2 className="m-0 mb-6 font-serif font-medium" style={{ fontSize: "clamp(24px, 2.5vw, 33px)" }}>{t("Department overview")}</h2>
           <div className="mb-15 grid max-w-[720px] gap-5">
-            {OVERVIEW.map((p, i) => (
-              <p key={i} className="m-0 leading-[1.8] text-slate dark:text-dark-ink-dim text-pretty" style={{ fontSize: i === 0 ? "16.5px" : "15.5px" }}>{t(p)}</p>
+            {dept.overview.map((p, i) => (
+              <p key={i} className="m-0 leading-[1.8] text-slate dark:text-dark-ink-dim text-pretty" style={{ fontSize: i === 0 ? "16.5px" : "15.5px" }}>{p}</p>
             ))}
           </div>
 
@@ -111,10 +99,10 @@ export default function DeptDetailView({ dept: staticDept }: { dept: Dept }) {
         <div className="font-mono mb-3.5 text-[11px] tracking-[.2em] text-gray dark:text-dark-ink-dimmer uppercase">{t("Portfolio")}</div>
         <h2 className="m-0 mb-6 font-serif font-medium" style={{ fontSize: "clamp(24px, 2.5vw, 33px)" }}>{t("International projects")}</h2>
         <div className="grid gap-px border border-navy/[.12] dark:border-dark-line bg-navy/[.12] dark:bg-dark-fill" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))" }}>
-          {PROJECTS.map((p, i) => (
-            <article key={p} className="grid gap-3 border-t-2 bg-white dark:bg-dark-surface-2 p-7.5" style={{ borderTopColor: dept.hero }}>
+          {dept.projects.map((p, i) => (
+            <article key={`${p}-${i}`} className="grid gap-3 border-t-2 bg-white dark:bg-dark-surface-2 p-7.5" style={{ borderTopColor: dept.hero }}>
               <span className="font-mono text-[10px] tracking-[.16em] uppercase" style={{ color: accent }}>{"QOM-" + dept.no + "-0" + (i + 1)}</span>
-              <h3 className="m-0 font-serif text-lg leading-[1.35] font-medium text-navy dark:text-dark-ink">{t(p)}</h3>
+              <h3 className="m-0 font-serif text-lg leading-[1.35] font-medium text-navy dark:text-dark-ink">{p}</h3>
               <p className="m-0 text-[13.5px] leading-[1.7] text-slate dark:text-dark-ink-dim">{t("[Scope, partner and stage of the project as recorded by the department.]")}</p>
             </article>
           ))}
@@ -126,9 +114,9 @@ export default function DeptDetailView({ dept: staticDept }: { dept: Dept }) {
           <div className="font-mono mb-3.5 text-[11px] tracking-[.2em] text-gray dark:text-dark-ink-dimmer uppercase">{t("Counterparts")}</div>
           <h2 className="m-0 mb-6 font-serif font-medium" style={{ fontSize: "clamp(24px, 2.5vw, 33px)" }}>{t("International partnerships")}</h2>
           <div className="grid gap-px border border-navy/[.12] dark:border-dark-line bg-navy/[.12] dark:bg-dark-fill">
-            {PARTNERS.map((p) => (
-              <div key={p} className="flex items-center justify-between gap-4 bg-white dark:bg-dark-surface-2 px-6 py-5.5">
-                <span className="text-[15px] text-navy dark:text-dark-ink">{t(p)}</span>
+            {dept.partners.map((p, i) => (
+              <div key={`${p}-${i}`} className="flex items-center justify-between gap-4 bg-white dark:bg-dark-surface-2 px-6 py-5.5">
+                <span className="text-[15px] text-navy dark:text-dark-ink">{p}</span>
                 <span className="font-mono text-[10px] tracking-[.16em] uppercase" style={{ color: accent }}>{t("Active")}</span>
               </div>
             ))}
@@ -138,10 +126,10 @@ export default function DeptDetailView({ dept: staticDept }: { dept: Dept }) {
           <div className="font-mono mb-3.5 text-[11px] tracking-[.2em] text-gray dark:text-dark-ink-dimmer uppercase">{t("Record")}</div>
           <h2 className="m-0 mb-6 font-serif font-medium" style={{ fontSize: "clamp(24px, 2.5vw, 33px)" }}>{t("Meetings & delegations")}</h2>
           <div className="grid gap-px border border-navy/[.12] dark:border-dark-line bg-navy/[.12] dark:bg-dark-fill">
-            {MEETINGS.map((m) => (
-              <div key={m} className="grid gap-1.5 bg-white dark:bg-dark-surface-2 px-6 py-5.5">
+            {dept.meetings.map((m, i) => (
+              <div key={`${m}-${i}`} className="grid gap-1.5 bg-white dark:bg-dark-surface-2 px-6 py-5.5">
                 <span className="font-mono text-[11px] text-gray dark:text-dark-ink-dimmer">{t("[date]")}</span>
-                <span className="text-[15px] text-navy dark:text-dark-ink">{t(m)}</span>
+                <span className="text-[15px] text-navy dark:text-dark-ink">{m}</span>
               </div>
             ))}
           </div>

@@ -116,6 +116,37 @@ export default function HomePage() {
     t("A standing platform for cities whose urban life is shaped by pilgrimage — coordinating dialogue, shared practice and joint programmes among member municipalities.")
   );
 
+  const CURRENT_MEMBERS_DEFAULT: [string, string][] = [
+    ["Iran", "Qom · Mashhad · Shiraz (Shah Cheragh) · Ray (Hazrat Abdol-Azim) · Kashan (Mashhad-e Ardehal) · Astaneh-ye Ashrafiyeh · Shush"],
+    ["Iraq", "Karbala · Najaf"],
+    ["Saudi Arabia", "Mecca · Medina"],
+    ["Syria · Georgia · Armenia", "Damascus · Tbilisi · Yerevan"],
+    ["Palestine · Turkey", "Hebron · Antakya"],
+  ];
+  const PROPOSED_MEMBERS_DEFAULT: [string, string][] = [
+    ["Iran · Iraq", "Semnan (Bastam) · Khoy (Shams Tabrizi) · Kadhimiya · Samarra"],
+    ["Uzbekistan · Kazakhstan", "Samarkand · Bukhara · Turkistan"],
+    ["India · Nepal", "Varanasi · Ajmer · Bodh Gaya · Lumbini"],
+    ["Pakistan · Turkey", "Lahore · Multan · Konya · Şanlıurfa"],
+  ];
+  const memberOverrides = pageData?.pcwg_current_members as { label?: BilingualText; cities?: BilingualText }[] | undefined;
+  const currentMembers =
+    memberOverrides && memberOverrides.length > 0
+      ? memberOverrides.map((o, i) => [
+          pickText(o.label, locale, CURRENT_MEMBERS_DEFAULT[i] ? t(CURRENT_MEMBERS_DEFAULT[i][0]) : ""),
+          pickText(o.cities, locale, CURRENT_MEMBERS_DEFAULT[i] ? t(CURRENT_MEMBERS_DEFAULT[i][1]) : ""),
+        ] as [string, string])
+      : CURRENT_MEMBERS_DEFAULT.map(([label, cities]) => [t(label), t(cities)] as [string, string]);
+
+  const proposedOverrides = pageData?.pcwg_proposed_members as { label?: BilingualText; cities?: BilingualText }[] | undefined;
+  const proposedMembers =
+    proposedOverrides && proposedOverrides.length > 0
+      ? proposedOverrides.map((o, i) => [
+          pickText(o.label, locale, PROPOSED_MEMBERS_DEFAULT[i] ? t(PROPOSED_MEMBERS_DEFAULT[i][0]) : ""),
+          pickText(o.cities, locale, PROPOSED_MEMBERS_DEFAULT[i] ? t(PROPOSED_MEMBERS_DEFAULT[i][1]) : ""),
+        ] as [string, string])
+      : PROPOSED_MEMBERS_DEFAULT.map(([label, cities]) => [t(label), t(cities)] as [string, string]);
+
   return (
     <div>
       <div id="top">
@@ -323,16 +354,10 @@ export default function HomePage() {
                 <span className="font-mono text-[11px] tracking-[.16em] text-gold uppercase">{t("Current members")}</span>
               </div>
               <div className="mb-[30px] grid gap-3.5">
-                {[
-                  ["Iran", "Qom · Mashhad · Shiraz (Shah Cheragh) · Ray (Hazrat Abdol-Azim) · Kashan (Mashhad-e Ardehal) · Astaneh-ye Ashrafiyeh · Shush"],
-                  ["Iraq", "Karbala · Najaf"],
-                  ["Saudi Arabia", "Mecca · Medina"],
-                  ["Syria · Georgia · Armenia", "Damascus · Tbilisi · Yerevan"],
-                  ["Palestine · Turkey", "Hebron · Antakya"],
-                ].map(([label, cities]) => (
-                  <div key={label}>
-                    <div className="mb-1.5 text-[11px] tracking-[.14em] text-[rgba(250,248,244,.45)] uppercase">{t(label)}</div>
-                    <div className="text-[13.5px] leading-[1.75] text-[rgba(250,248,244,.85)]">{t(cities)}</div>
+                {currentMembers.map(([label, cities], i) => (
+                  <div key={`${label}-${i}`}>
+                    <div className="mb-1.5 text-[11px] tracking-[.14em] text-[rgba(250,248,244,.45)] uppercase">{label}</div>
+                    <div className="text-[13.5px] leading-[1.75] text-[rgba(250,248,244,.85)]">{cities}</div>
                   </div>
                 ))}
               </div>
@@ -341,15 +366,10 @@ export default function HomePage() {
                 <span className="font-mono text-[11px] tracking-[.16em] text-teal dark:text-dark-teal uppercase">{t("Proposed / upcoming")}</span>
               </div>
               <div className="grid gap-3.5">
-                {[
-                  ["Iran · Iraq", "Semnan (Bastam) · Khoy (Shams Tabrizi) · Kadhimiya · Samarra"],
-                  ["Uzbekistan · Kazakhstan", "Samarkand · Bukhara · Turkistan"],
-                  ["India · Nepal", "Varanasi · Ajmer · Bodh Gaya · Lumbini"],
-                  ["Pakistan · Turkey", "Lahore · Multan · Konya · Şanlıurfa"],
-                ].map(([label, cities]) => (
-                  <div key={label}>
-                    <div className="mb-1.5 text-[11px] tracking-[.14em] text-[rgba(250,248,244,.45)] uppercase">{t(label)}</div>
-                    <div className="text-[13.5px] leading-[1.75] text-[rgba(250,248,244,.72)]">{t(cities)}</div>
+                {proposedMembers.map(([label, cities], i) => (
+                  <div key={`${label}-${i}`}>
+                    <div className="mb-1.5 text-[11px] tracking-[.14em] text-[rgba(250,248,244,.45)] uppercase">{label}</div>
+                    <div className="text-[13.5px] leading-[1.75] text-[rgba(250,248,244,.72)]">{cities}</div>
                   </div>
                 ))}
                 <p className="m-0 mt-2 text-xs leading-[1.65] text-[rgba(250,248,244,.50)]">

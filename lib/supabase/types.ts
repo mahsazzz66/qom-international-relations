@@ -15,6 +15,10 @@ export type ContentItem = {
   event_date: string | null;
   location: string | null;
   status: string | null;
+  end_date: string | null;
+  investment_type: string | null;
+  lat: string | null;
+  lng: string | null;
   published: boolean;
   sort_order: number;
   created_by: string | null;
