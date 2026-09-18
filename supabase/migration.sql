@@ -17,17 +17,12 @@ drop policy if exists "profiles: self read" on public.profiles;
 create policy "profiles: self read" on public.profiles
   for select using (auth.uid() = id);
 
-drop policy if exists "profiles: admins read all" on public.profiles;
-create policy "profiles: admins read all" on public.profiles
-  for select using (
-    exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
-  );
-
-drop policy if exists "profiles: admins manage" on public.profiles;
-create policy "profiles: admins manage" on public.profiles
-  for all using (
-    exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
-  );
+-- Note: no "admins can read/manage all profiles" policy exists here on
+-- purpose. A policy on this table that subqueries this same table (to check
+-- the caller's role) causes Postgres to report "infinite recursion detected
+-- in policy for relation profiles". Admin-side staff management instead goes
+-- through the server-only service-role client (lib/supabase/admin.ts), which
+-- bypasses RLS entirely, so this table only needs the "self read" policy.
 
 -- Automatically create a profile row whenever a new Auth user is created
 -- (e.g. via an admin invite). First-ever user becomes admin automatically.
@@ -148,3 +143,38 @@ create policy "site-media: staff delete" on storage.objects
     bucket_id = 'site-media'
     and exists (select 1 from public.profiles p where p.id = auth.uid())
   );
+
+-- 4) Page content -------------------------------------------------------------
+-- One row per static page (home, about, about-qom, pcwg, ...), holding all of
+-- that page's editable text/images/lists as a single JSON document. The
+-- admin's generic page editor (schema-driven) reads and writes this; each
+-- public page merges it over its own hardcoded defaults, so an empty/missing
+-- row never breaks the page.
+create table if not exists public.page_content (
+  page text primary key,
+  data jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.page_content enable row level security;
+
+drop policy if exists "page_content: public read" on public.page_content;
+create policy "page_content: public read" on public.page_content
+  for select using (true);
+
+drop policy if exists "page_content: staff write" on public.page_content;
+create policy "page_content: staff write" on public.page_content
+  for insert with check (
+    exists (select 1 from public.profiles p where p.id = auth.uid())
+  );
+
+drop policy if exists "page_content: staff update" on public.page_content;
+create policy "page_content: staff update" on public.page_content
+  for update using (
+    exists (select 1 from public.profiles p where p.id = auth.uid())
+  );
+
+drop trigger if exists page_content_set_updated_at on public.page_content;
+create trigger page_content_set_updated_at
+  before update on public.page_content
+  for each row execute function public.set_updated_at();

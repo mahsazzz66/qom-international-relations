@@ -3,6 +3,65 @@
 import Link from "next/link";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { useLocale } from "@/lib/i18n";
+import { pickImage, pickText, usePageContent } from "@/lib/pageContent/read";
+import { getPageSchema } from "@/lib/pageContent/pageSchemas";
+import type { BilingualText } from "@/lib/pageContent/schema";
+
+const ABOUT_QOM_SCHEMA = getPageSchema("about-qom")!;
+
+type Locale = "en" | "ar";
+type Tfn = (s: string) => string;
+
+type GlanceOverride = { label?: BilingualText; value?: BilingualText; body?: BilingualText };
+type AttractionOverride = { category?: BilingualText; title?: BilingualText; body?: BilingualText; image?: string | null };
+type VisitCardOverride = { eyebrow?: BilingualText; title?: BilingualText; body?: BilingualText };
+type VisitInfoOverride = { label?: BilingualText; value?: BilingualText };
+
+function mergeGlance(overrides: GlanceOverride[] | undefined, locale: Locale, t: Tfn) {
+  if (!overrides || overrides.length === 0) {
+    return GLANCE.map((g) => ({ label: t(g.label), value: t(g.value), body: t(g.body), icon: g.icon }));
+  }
+  return overrides.map((o, i) => ({
+    label: pickText(o.label, locale, GLANCE[i] ? t(GLANCE[i].label) : ""),
+    value: pickText(o.value, locale, GLANCE[i] ? t(GLANCE[i].value) : ""),
+    body: pickText(o.body, locale, GLANCE[i] ? t(GLANCE[i].body) : ""),
+    icon: GLANCE[i]?.icon ?? GLANCE[0].icon,
+  }));
+}
+
+function mergeAttractions(overrides: AttractionOverride[] | undefined, locale: Locale, t: Tfn) {
+  if (!overrides || overrides.length === 0) {
+    return ATTRACTIONS.map((a) => ({ cat: t(a.cat), title: t(a.title), body: t(a.body), img: a.img, image: null as string | null }));
+  }
+  return overrides.map((o, i) => ({
+    cat: pickText(o.category, locale, ATTRACTIONS[i] ? t(ATTRACTIONS[i].cat) : ""),
+    title: pickText(o.title, locale, ATTRACTIONS[i] ? t(ATTRACTIONS[i].title) : ""),
+    body: pickText(o.body, locale, ATTRACTIONS[i] ? t(ATTRACTIONS[i].body) : ""),
+    img: ATTRACTIONS[i]?.img ?? "",
+    image: pickImage(o.image, null),
+  }));
+}
+
+function mergeVisitCards(overrides: VisitCardOverride[] | undefined, locale: Locale, t: Tfn) {
+  if (!overrides || overrides.length === 0) {
+    return VISIT_CARDS.map((c) => ({ eyebrow: t(c.eyebrow), title: t(c.title), body: t(c.body) }));
+  }
+  return overrides.map((o, i) => ({
+    eyebrow: pickText(o.eyebrow, locale, VISIT_CARDS[i] ? t(VISIT_CARDS[i].eyebrow) : ""),
+    title: pickText(o.title, locale, VISIT_CARDS[i] ? t(VISIT_CARDS[i].title) : ""),
+    body: pickText(o.body, locale, VISIT_CARDS[i] ? t(VISIT_CARDS[i].body) : ""),
+  }));
+}
+
+function mergeVisitInfo(overrides: VisitInfoOverride[] | undefined, locale: Locale, t: Tfn) {
+  if (!overrides || overrides.length === 0) {
+    return VISIT_INFO.map(([k, v]) => [t(k), t(v)] as [string, string]);
+  }
+  return overrides.map((o, i) => [
+    pickText(o.label, locale, VISIT_INFO[i] ? t(VISIT_INFO[i][0]) : ""),
+    pickText(o.value, locale, VISIT_INFO[i] ? t(VISIT_INFO[i][1]) : ""),
+  ] as [string, string]);
+}
 
 const GLANCE = [
   { label: "Population", value: "[official figure]", body: "City and metropolitan population, per the municipal statistical record.",
@@ -43,8 +102,12 @@ const VISIT_INFO = [
   ["Delegation visits", "Arranged by the International Office"],
 ];
 
-function ImgPlaceholder({ label, className = "" }: { label: string; className?: string }) {
+function ImgPlaceholder({ label, className = "", image }: { label: string; className?: string; image?: string | null }) {
   const { t } = useLocale();
+  if (image) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={image} alt={t(label)} className={`object-cover ${className}`} />;
+  }
   return (
     <div className={`grid place-items-center border border-gold/35 bg-navy dark:bg-dark-navy p-3.5 text-center ${className}`} style={{ backgroundImage: "repeating-linear-gradient(135deg, rgba(200,167,93,.16) 0 2px, transparent 2px 11px)" }}>
       <span className="font-mono text-[10px] tracking-[.14em] text-[rgba(250,248,244,.42)] uppercase">{t(label)}</span>
@@ -53,7 +116,22 @@ function ImgPlaceholder({ label, className = "" }: { label: string; className?: 
 }
 
 export default function AboutQomPage() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
+  const pageData = usePageContent("about-qom", ABOUT_QOM_SCHEMA);
+
+  const heroTitle = pickText(pageData?.hero_title as BilingualText | undefined, locale, t("About Qom"));
+  const heroDescription = pickText(
+    pageData?.hero_description as BilingualText | undefined,
+    locale,
+    t(
+      "A city of pilgrimage, scholarship and craft. Qom receives visitors from across the Islamic world and beyond — to the shrine of Hazrat Fatima Masumeh (SA), to the seminaries that have shaped Shia learning for centuries, and to a living urban culture at the edge of the Iranian plateau."
+    )
+  );
+  const glance = mergeGlance(pageData?.glance as GlanceOverride[] | undefined, locale, t);
+  const attractions = mergeAttractions(pageData?.attractions as AttractionOverride[] | undefined, locale, t);
+  const visitCards = mergeVisitCards(pageData?.visitCards as VisitCardOverride[] | undefined, locale, t);
+  const visitInfo = mergeVisitInfo(pageData?.visitInfo as VisitInfoOverride[] | undefined, locale, t);
+
   return (
     <div>
       <div className="relative overflow-hidden bg-navy dark:bg-dark-navy">
@@ -73,10 +151,10 @@ export default function AboutQomPage() {
           <div>
             <Breadcrumbs page="about-qom" />
             <div className="mb-5 flex flex-wrap items-center gap-3"><span className="h-px w-7 bg-gold" /><span className="font-mono text-[11px] tracking-[.2em] text-gold uppercase">{t("The City")}</span></div>
-            <h1 className="m-0 mb-4.5 font-serif font-medium text-bg" style={{ fontSize: "clamp(40px, 5.4vw, 72px)", lineHeight: 1.04, letterSpacing: "-.02em" }}>{t("About Qom")}</h1>
+            <h1 className="m-0 mb-4.5 font-serif font-medium text-bg" style={{ fontSize: "clamp(40px, 5.4vw, 72px)", lineHeight: 1.04, letterSpacing: "-.02em" }}>{heroTitle}</h1>
             <p className="m-0 mb-6 font-serif text-gold" style={{ fontSize: "clamp(19px, 2vw, 26px)", lineHeight: 1.4 }}>{t("The Spiritual and Cultural Heart of Iran")}</p>
             <p className="m-0 mb-8 max-w-[560px] text-[16.5px] leading-[1.8] text-[rgba(250,248,244,.76)]">
-              {t("A city of pilgrimage, scholarship and craft. Qom receives visitors from across the Islamic world and beyond — to the shrine of Hazrat Fatima Masumeh (SA), to the seminaries that have shaped Shia learning for centuries, and to a living urban culture at the edge of the Iranian plateau.")}
+              {heroDescription}
             </p>
             <div className="flex flex-wrap gap-3">
               <a href="#qom-glance" className="bg-gold px-6 py-3.5 text-[13.5px] font-semibold text-navy transition-colors hover:bg-bg">{t("Qom at a Glance")}</a>
@@ -100,14 +178,14 @@ export default function AboutQomPage() {
           </div>
           <p className="m-0 mb-10 max-w-[680px] text-[15px] leading-[1.75] text-slate dark:text-dark-ink-dim">{t("A quick reference for visitors, pilgrims, delegations and investors. Figures marked in brackets are replaced with official municipal data before publication.")}</p>
           <div className="grid gap-5.5" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(238px, 1fr))" }}>
-            {GLANCE.map((g) => (
-              <article key={g.label} className="grid content-start gap-3.5 border border-navy/[.12] dark:border-dark-line bg-white dark:bg-dark-surface-2 px-6.5 py-7.5 transition-transform hover:-translate-y-1.5">
+            {glance.map((g, i) => (
+              <article key={`${g.label}-${i}`} className="grid content-start gap-3.5 border border-navy/[.12] dark:border-dark-line bg-white dark:bg-dark-surface-2 px-6.5 py-7.5 transition-transform hover:-translate-y-1.5">
                 <div className="grid h-11.5 w-11.5 place-items-center border border-gold/60 bg-gold/10">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C8A75D" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round">{g.icon}</svg>
                 </div>
-                <div className="font-mono text-[10.5px] tracking-[.16em] text-gray dark:text-dark-ink-dimmer uppercase">{t(g.label)}</div>
-                <div className="font-serif text-[22px] leading-[1.3] text-navy dark:text-dark-ink">{t(g.value)}</div>
-                <div className="text-[12.5px] leading-[1.6] text-gray dark:text-dark-ink-dimmer">{t(g.body)}</div>
+                <div className="font-mono text-[10.5px] tracking-[.16em] text-gray dark:text-dark-ink-dimmer uppercase">{g.label}</div>
+                <div className="font-serif text-[22px] leading-[1.3] text-navy dark:text-dark-ink">{g.value}</div>
+                <div className="text-[12.5px] leading-[1.6] text-gray dark:text-dark-ink-dimmer">{g.body}</div>
               </article>
             ))}
           </div>
@@ -196,13 +274,13 @@ export default function AboutQomPage() {
             <p className="m-0 max-w-[420px] text-[15px] leading-[1.75] text-slate dark:text-dark-ink-dim">{t("Beyond the sanctuaries, Qom holds a historic bazaar, courtyard houses, museums and a desert landscape of salt lakes and mountain villages.")}</p>
           </div>
           <div className="grid gap-6" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}>
-            {ATTRACTIONS.map((a) => (
-              <article key={a.title} className="border border-navy/[.12] dark:border-dark-line bg-white dark:bg-dark-surface-2 transition-transform hover:-translate-y-1.5">
-                <ImgPlaceholder label={a.img} className="aspect-[4/3]" />
+            {attractions.map((a, i) => (
+              <article key={`${a.title}-${i}`} className="border border-navy/[.12] dark:border-dark-line bg-white dark:bg-dark-surface-2 transition-transform hover:-translate-y-1.5">
+                <ImgPlaceholder label={a.img} image={a.image} className="aspect-[4/3]" />
                 <div className="p-6">
-                  <div className="font-mono mb-2.5 text-[10px] tracking-[.14em] text-teal dark:text-dark-teal uppercase">{t(a.cat)}</div>
-                  <h3 className="m-0 mb-2.5 font-serif text-xl font-medium">{t(a.title)}</h3>
-                  <p className="m-0 text-sm leading-[1.65] text-slate dark:text-dark-ink-dim">{t(a.body)}</p>
+                  <div className="font-mono mb-2.5 text-[10px] tracking-[.14em] text-teal dark:text-dark-teal uppercase">{a.cat}</div>
+                  <h3 className="m-0 mb-2.5 font-serif text-xl font-medium">{a.title}</h3>
+                  <p className="m-0 text-sm leading-[1.65] text-slate dark:text-dark-ink-dim">{a.body}</p>
                 </div>
               </article>
             ))}
@@ -265,19 +343,19 @@ export default function AboutQomPage() {
             <Link href="/contact" className="border border-navy/20 dark:border-dark-line px-5 py-3.5 text-[13.5px] font-semibold transition-colors hover:border-gold hover:bg-gold/10">{t("Contact the International Office")}</Link>
           </div>
           <div className="mb-8.5 grid gap-6" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(290px, 1fr))" }}>
-            {VISIT_CARDS.map((c) => (
-              <article key={c.title} className="border border-navy/[.12] dark:border-dark-line bg-bg dark:bg-dark-surface px-7.5 py-8.5 transition-transform hover:-translate-y-1.5">
-                <div className="font-mono mb-4 text-[10px] tracking-[.18em] text-gold uppercase">{t(c.eyebrow)}</div>
-                <h3 className="m-0 mb-3.5 font-serif text-[22px] font-medium">{t(c.title)}</h3>
-                <p className="m-0 text-[14.5px] leading-[1.75] text-slate dark:text-dark-ink-dim">{t(c.body)}</p>
+            {visitCards.map((c, i) => (
+              <article key={`${c.title}-${i}`} className="border border-navy/[.12] dark:border-dark-line bg-bg dark:bg-dark-surface px-7.5 py-8.5 transition-transform hover:-translate-y-1.5">
+                <div className="font-mono mb-4 text-[10px] tracking-[.18em] text-gold uppercase">{c.eyebrow}</div>
+                <h3 className="m-0 mb-3.5 font-serif text-[22px] font-medium">{c.title}</h3>
+                <p className="m-0 text-[14.5px] leading-[1.75] text-slate dark:text-dark-ink-dim">{c.body}</p>
               </article>
             ))}
           </div>
           <div className="grid gap-px bg-navy/[.12] dark:bg-dark-fill" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
-            {VISIT_INFO.map(([k, v]) => (
-              <div key={k} className="bg-white dark:bg-dark-surface-2 p-6.5">
-                <div className="font-mono mb-2 text-[10px] tracking-[.16em] text-gray dark:text-dark-ink-dimmer uppercase">{t(k)}</div>
-                <div className="text-[15px] text-navy dark:text-dark-ink">{t(v)}</div>
+            {visitInfo.map(([k, v], i) => (
+              <div key={`${k}-${i}`} className="bg-white dark:bg-dark-surface-2 p-6.5">
+                <div className="font-mono mb-2 text-[10px] tracking-[.16em] text-gray dark:text-dark-ink-dimmer uppercase">{k}</div>
+                <div className="text-[15px] text-navy dark:text-dark-ink">{v}</div>
               </div>
             ))}
           </div>

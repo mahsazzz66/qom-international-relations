@@ -4,9 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { signOutAction } from "../actions";
+import { adminFont } from "@/lib/adminFont";
 
 const NAV = [
   { href: "/admin", label: "داشبورد", icon: "M4 13h6V4H4zM14 20h6v-9h-6zM4 20h6v-5H4zM14 10h6V4h-6z" },
+  { href: "/admin/pages", label: "صفحات سایت", icon: "M4 4h11l5 5v11H4zM15 4v5h5" },
   { href: "/admin/news", label: "اخبار", icon: "M4 5h16v14H4zM8 9h8M8 13h8M8 17h4" },
   { href: "/admin/statements", label: "بیانیه‌ها و پیام‌ها", icon: "M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" },
   { href: "/admin/events", label: "رویدادها", icon: "M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" },
@@ -31,7 +33,7 @@ export default function AdminShell({
   const items = NAV.filter((n) => !n.adminOnly || role === "admin");
 
   return (
-    <div dir="rtl" className="min-h-screen bg-bg">
+    <div dir="rtl" className={`${adminFont.className} min-h-screen bg-bg`}>
       {/* Mobile top bar */}
       <div className="flex items-center justify-between border-b border-navy/10 bg-white px-4 py-3 md:hidden">
         <span className="font-serif text-lg font-medium text-navy">پنل مدیریت</span>

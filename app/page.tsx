@@ -8,6 +8,11 @@ import HomePcwgMap from "@/components/home/HomePcwgMap";
 import HomeInvestmentTeaser from "@/components/home/HomeInvestmentTeaser";
 import HomeMedia from "@/components/home/HomeMedia";
 import { useLocale } from "@/lib/i18n";
+import { usePageContent } from "@/lib/pageContent/read";
+import { getPageSchema } from "@/lib/pageContent/pageSchemas";
+import type { HeroSlideOverride } from "@/components/HeroSlideshow";
+
+const HOME_SCHEMA = getPageSchema("home")!;
 
 const RIBBON = [
   {
@@ -41,11 +46,13 @@ const COOPERATION_AREAS = [
 
 export default function HomePage() {
   const { t } = useLocale();
+  const pageData = usePageContent("home", HOME_SCHEMA);
+  const slideOverrides = pageData?.slides as HeroSlideOverride[] | undefined;
 
   return (
     <div>
       <div id="top">
-        <HeroSlideshow />
+        <HeroSlideshow overrides={slideOverrides} />
       </div>
 
       {/* Ribbon */}

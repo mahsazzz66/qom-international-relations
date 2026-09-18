@@ -3,6 +3,8 @@
 import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
 import { useLocale } from "@/lib/i18n";
+import { pickImage, pickText } from "@/lib/pageContent/read";
+import type { BilingualText } from "@/lib/pageContent/schema";
 
 interface Slide {
   labelKey: string;
@@ -50,8 +52,18 @@ const SLIDES: Slide[] = [
   },
 ];
 
-export default function HeroSlideshow() {
-  const { t } = useLocale();
+// Admin-editable overrides for each slide, in schema/list order — same shape
+// as the "slides" list field in lib/pageContent/pageSchemas.ts. Missing or
+// empty fields fall back to the static copy above, so an empty/never-edited
+// row never breaks the slideshow.
+export interface HeroSlideOverride {
+  title?: BilingualText;
+  description?: BilingualText;
+  image?: string | null;
+}
+
+export default function HeroSlideshow({ overrides }: { overrides?: HeroSlideOverride[] }) {
+  const { t, locale } = useLocale();
   const [slide, setSlide] = useState(0);
   // The source never clears the outgoing slide's `style.animation`, so every
   // slide that has been shown keeps carrying qomKen/qomReveal; `run` restarts
@@ -94,6 +106,10 @@ export default function HeroSlideshow() {
         const active = i === slide;
         const activation = activationRef.current[i];
         const shown = activation !== undefined;
+        const override = overrides?.[i];
+        const title = pickText(override?.title, locale, t(s.titleKey));
+        const description = pickText(override?.description, locale, t(s.descKey));
+        const image = pickImage(override?.image, null);
         return (
           <div
             key={i}
@@ -104,13 +120,19 @@ export default function HeroSlideshow() {
               key={`ken-${i}-${activation ?? 0}`}
               className="absolute inset-0"
               style={{
-                backgroundImage: "repeating-linear-gradient(135deg, rgba(200,167,93,.14) 0 2px, transparent 2px 11px)",
+                backgroundImage: image
+                  ? `url(${image})`
+                  : "repeating-linear-gradient(135deg, rgba(200,167,93,.14) 0 2px, transparent 2px 11px)",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
                 ...(shown ? { animation: "qomKen 9s ease-out forwards", transformOrigin: "center" } : null),
               }}
             >
-              <span className="font-mono absolute top-[22px] max-w-[40%] text-right text-[10.5px] tracking-[.16em] text-[rgba(250,248,244,.34)] uppercase right-6">
-                {t(s.labelKey)}
-              </span>
+              {!image && (
+                <span className="font-mono absolute top-[22px] max-w-[40%] text-right text-[10.5px] tracking-[.16em] text-[rgba(250,248,244,.34)] uppercase right-6">
+                  {t(s.labelKey)}
+                </span>
+              )}
             </div>
             <div
               className="absolute inset-0"
@@ -128,12 +150,12 @@ export default function HeroSlideshow() {
                     className="m-0 mb-[18px] font-serif font-medium text-bg text-pretty"
                     style={{ fontSize: "clamp(33px, 4.4vw, 58px)", lineHeight: 1.07, letterSpacing: "-.015em", maxWidth: i === 2 ? 860 : 800 }}
                   >
-                    {t(s.titleKey)}
+                    {title}
                   </Heading>
                 );
               })()}
               <p className="m-0 mb-7 max-w-[580px] text-[rgba(250,248,244,.80)] text-pretty" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: 1.6 }}>
-                {t(s.descKey)}
+                {description}
               </p>
               <div className="flex flex-wrap gap-3.5">
                 {s.primary.href.startsWith("#") ? (

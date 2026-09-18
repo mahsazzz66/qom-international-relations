@@ -6,6 +6,38 @@ import VideoCard from "@/components/VideoCard";
 import PcwgNetwork from "@/components/pcwg/PcwgNetwork";
 import PcwgConstellation from "@/components/pcwg/PcwgConstellation";
 import { useLocale } from "@/lib/i18n";
+import { pickText, usePageContent } from "@/lib/pageContent/read";
+import { getPageSchema } from "@/lib/pageContent/pageSchemas";
+import type { BilingualText } from "@/lib/pageContent/schema";
+
+const PCWG_SCHEMA = getPageSchema("pcwg")!;
+
+type Locale = "en" | "ar";
+type Tfn = (s: string) => string;
+
+type CityOverride = { country?: BilingualText; city?: BilingualText; body?: BilingualText };
+type TitleBodyOverride = { title?: BilingualText; body?: BilingualText };
+
+function mergeCities(overrides: CityOverride[] | undefined, fallback: string[][], locale: Locale, t: Tfn) {
+  if (!overrides || overrides.length === 0) {
+    return fallback.map(([country, name, body]) => [t(country), t(name), t(body)] as [string, string, string]);
+  }
+  return overrides.map((o, i) => [
+    pickText(o.country, locale, fallback[i] ? t(fallback[i][0]) : ""),
+    pickText(o.city, locale, fallback[i] ? t(fallback[i][1]) : ""),
+    pickText(o.body, locale, fallback[i] ? t(fallback[i][2]) : ""),
+  ] as [string, string, string]);
+}
+
+function mergeTitleBody(overrides: TitleBodyOverride[] | undefined, fallback: string[][], locale: Locale, t: Tfn) {
+  if (!overrides || overrides.length === 0) {
+    return fallback.map(([title, body]) => [t(title), t(body)] as [string, string]);
+  }
+  return overrides.map((o, i) => [
+    pickText(o.title, locale, fallback[i] ? t(fallback[i][0]) : ""),
+    pickText(o.body, locale, fallback[i] ? t(fallback[i][1]) : ""),
+  ] as [string, string]);
+}
 
 const CURRENT_MEMBERS = [
   ["Iran", "Mashhad", "Shrine city of Imam Reza and the largest pilgrimage destination in Iran."],
@@ -81,9 +113,9 @@ function CityCard({ country, name, body }: { country: string; name: string; body
         <span className="font-mono absolute top-3 bg-gold px-2.5 py-[5px] text-[9px] tracking-[.14em] text-navy uppercase start-3">{t("Current member")}</span>
       </div>
       <div className="grid content-start gap-2 p-6">
-        <div className="font-mono text-[10px] tracking-[.16em] text-gray dark:text-dark-ink-dimmer uppercase">{t(country)}</div>
-        <h3 className="m-0 font-serif text-[21px] font-medium">{t(name)}</h3>
-        <p className="m-0 text-sm leading-[1.65] text-slate dark:text-dark-ink-dim text-pretty">{t(body)}</p>
+        <div className="font-mono text-[10px] tracking-[.16em] text-gray dark:text-dark-ink-dimmer uppercase">{country}</div>
+        <h3 className="m-0 font-serif text-[21px] font-medium">{name}</h3>
+        <p className="m-0 text-sm leading-[1.65] text-slate dark:text-dark-ink-dim text-pretty">{body}</p>
       </div>
     </article>
   );
@@ -94,15 +126,27 @@ function ProposedCard({ country, name, body }: { country: string; name: string; 
   return (
     <article className="grid content-start gap-2 border border-dashed border-teal/50 bg-bg dark:bg-dark-surface p-6">
       <div className="flex items-center gap-2.5"><span className="h-2.5 w-2.5 rounded-full border-[1.5px] border-teal" /><span className="font-mono text-[10px] tracking-[.16em] text-teal dark:text-dark-teal uppercase">{t("Proposed city")}</span></div>
-      <h3 className="m-0 font-serif text-[19px] font-medium">{t(name)}</h3>
-      <div className="font-mono text-[10.5px] tracking-[.12em] text-gray dark:text-dark-ink-dimmer uppercase">{t(country)}</div>
-      <p className="m-0 text-[13.5px] leading-[1.65] text-slate dark:text-dark-ink-dim text-pretty">{t(body)}</p>
+      <h3 className="m-0 font-serif text-[19px] font-medium">{name}</h3>
+      <div className="font-mono text-[10.5px] tracking-[.12em] text-gray dark:text-dark-ink-dimmer uppercase">{country}</div>
+      <p className="m-0 text-[13.5px] leading-[1.65] text-slate dark:text-dark-ink-dim text-pretty">{body}</p>
     </article>
   );
 }
 
 export default function PcwgPage() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
+  const pageData = usePageContent("pcwg", PCWG_SCHEMA);
+
+  const heroTitle = pickText(pageData?.hero_title as BilingualText | undefined, locale, t("Pilgrimage Cities Working Group"));
+  const heroDescription = pickText(
+    pageData?.hero_description as BilingualText | undefined,
+    locale,
+    t("An international platform for cooperation, dialogue and knowledge exchange among pilgrimage cities.")
+  );
+  const currentMembers = mergeCities(pageData?.currentMembers as CityOverride[] | undefined, CURRENT_MEMBERS, locale, t);
+  const proposedMembers = mergeCities(pageData?.proposedMembers as CityOverride[] | undefined, PROPOSED, locale, t);
+  const areas = mergeTitleBody(pageData?.areas as TitleBodyOverride[] | undefined, AREAS, locale, t);
+  const activityTypes = mergeTitleBody(pageData?.activityTypes as TitleBodyOverride[] | undefined, ACTIVITY_TYPES, locale, t);
 
   return (
     <div>
@@ -113,8 +157,8 @@ export default function PcwgPage() {
         <div className="relative mx-auto max-w-[1280px] px-6 pt-22 pb-26">
           <Breadcrumbs page="pcwg" />
           <div className="font-mono mb-4 text-[11px] tracking-[.2em] text-gold uppercase">{t("International Platform")}</div>
-          <h1 className="m-0 mb-6 max-w-[900px] font-serif font-medium text-bg text-pretty" style={{ fontSize: "clamp(38px, 5.4vw, 74px)", lineHeight: 1.04, letterSpacing: "-.02em" }}>{t("Pilgrimage Cities Working Group")}</h1>
-          <p className="m-0 mb-11 max-w-[660px] text-[rgba(250,248,244,.82)] text-pretty" style={{ fontSize: "clamp(16px, 1.4vw, 20px)", lineHeight: 1.65 }}>{t("An international platform for cooperation, dialogue and knowledge exchange among pilgrimage cities.")}</p>
+          <h1 className="m-0 mb-6 max-w-[900px] font-serif font-medium text-bg text-pretty" style={{ fontSize: "clamp(38px, 5.4vw, 74px)", lineHeight: 1.04, letterSpacing: "-.02em" }}>{heroTitle}</h1>
+          <p className="m-0 mb-11 max-w-[660px] text-[rgba(250,248,244,.82)] text-pretty" style={{ fontSize: "clamp(16px, 1.4vw, 20px)", lineHeight: 1.65 }}>{heroDescription}</p>
           <div className="mb-10 grid max-w-[820px] gap-px bg-bg/[.22]" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" }}>
             <div className="bg-gold p-7.5 text-navy">
               <div className="font-mono mb-3 text-[10.5px] tracking-[.2em] uppercase">{t("President")}</div>
@@ -146,7 +190,7 @@ export default function PcwgPage() {
         <h2 className="m-0 mb-4 font-serif font-medium" style={{ fontSize: "clamp(28px, 3.2vw, 44px)", lineHeight: 1.12 }}>{t("Current Members")}</h2>
         <p className="m-0 mb-10 max-w-[640px] text-[16.5px] leading-[1.7] text-slate dark:text-dark-ink-dim">{t("Cities whose municipalities have joined the Working Group and take part in its sessions and programmes.")}</p>
         <div className="grid gap-6.5" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
-          {CURRENT_MEMBERS.map(([country, name, body]) => <CityCard key={name} country={country} name={name} body={body} />)}
+          {currentMembers.map(([country, name, body], i) => <CityCard key={`${name}-${i}`} country={country} name={name} body={body} />)}
         </div>
       </div>
 
@@ -154,7 +198,7 @@ export default function PcwgPage() {
         <h2 className="m-0 mb-3.5 font-serif font-medium" style={{ fontSize: "clamp(26px, 2.8vw, 38px)", lineHeight: 1.15 }}>{t("Proposed & Upcoming Cities")}</h2>
         <p className="m-0 mb-9 max-w-[660px] text-[15.5px] leading-[1.7] text-gray dark:text-dark-ink-dimmer">{t("Candidates under discussion with the secretariat. Proposed cities are not yet official members of the Working Group.")}</p>
         <div className="grid gap-5" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))" }}>
-          {PROPOSED.map(([country, name, body]) => <ProposedCard key={name} country={country} name={name} body={body} />)}
+          {proposedMembers.map(([country, name, body], i) => <ProposedCard key={`${name}-${i}`} country={country} name={name} body={body} />)}
         </div>
       </div>
 
@@ -198,11 +242,11 @@ export default function PcwgPage() {
           <div className="font-mono mb-4 text-[11px] tracking-[.2em] text-gold uppercase">{t("Cooperation")}</div>
           <h2 className="m-0 mb-11 font-serif font-medium text-bg" style={{ fontSize: "clamp(28px, 3.2vw, 44px)", lineHeight: 1.12 }}>{t("Areas of Cooperation")}</h2>
           <div className="grid gap-5" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
-            {AREAS.map(([title, body], i) => (
-              <div key={title} className="grid content-start gap-3 border border-bg/[.16] bg-bg/[.04] p-7.5 transition-colors hover:border-gold hover:bg-gold/[.08]">
+            {areas.map(([title, body], i) => (
+              <div key={`${title}-${i}`} className="grid content-start gap-3 border border-bg/[.16] bg-bg/[.04] p-7.5 transition-colors hover:border-gold hover:bg-gold/[.08]">
                 <div className="font-mono text-[11px] tracking-[.18em] text-gold">{String(i + 1).padStart(2, "0")}</div>
-                <h3 className="m-0 font-serif text-[19px] font-medium text-bg">{t(title)}</h3>
-                <p className="m-0 text-[13.5px] leading-[1.7] text-[rgba(250,248,244,.68)] text-pretty">{t(body)}</p>
+                <h3 className="m-0 font-serif text-[19px] font-medium text-bg">{title}</h3>
+                <p className="m-0 text-[13.5px] leading-[1.7] text-[rgba(250,248,244,.68)] text-pretty">{body}</p>
               </div>
             ))}
           </div>
@@ -213,10 +257,10 @@ export default function PcwgPage() {
         <div className="font-mono mb-4 text-[11px] tracking-[.2em] text-gray dark:text-dark-ink-dimmer uppercase">{t("Programme")}</div>
         <h2 className="m-0 mb-10 font-serif font-medium" style={{ fontSize: "clamp(28px, 3.2vw, 44px)", lineHeight: 1.12 }}>{t("Meetings & Activities")}</h2>
         <div className="mb-13 grid gap-5.5" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))" }}>
-          {ACTIVITY_TYPES.map(([title, body]) => (
-            <div key={title} className="grid content-start gap-2.5 border border-navy/[.12] dark:border-dark-line bg-white dark:bg-dark-surface-2 p-7.5">
-              <h3 className="m-0 font-serif text-[19px] font-medium">{t(title)}</h3>
-              <p className="m-0 text-[13.5px] leading-[1.7] text-slate dark:text-dark-ink-dim text-pretty">{t(body)}</p>
+          {activityTypes.map(([title, body], i) => (
+            <div key={`${title}-${i}`} className="grid content-start gap-2.5 border border-navy/[.12] dark:border-dark-line bg-white dark:bg-dark-surface-2 p-7.5">
+              <h3 className="m-0 font-serif text-[19px] font-medium">{title}</h3>
+              <p className="m-0 text-[13.5px] leading-[1.7] text-slate dark:text-dark-ink-dim text-pretty">{body}</p>
             </div>
           ))}
         </div>
