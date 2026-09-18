@@ -1,11 +1,15 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import PageHero from "@/components/PageHero";
 import ArchiveSection from "@/components/ArchiveSection";
 import { NewsCard, MsgCard } from "@/components/NewsCard";
 import { NEWS, MSGS, fmtDate, NewsItem } from "@/lib/data";
 import { useLocale } from "@/lib/i18n";
+import { createClient } from "@/lib/supabase/client";
+import { contentItemToNewsItem } from "@/lib/supabase/adapters";
+import type { ContentItem } from "@/lib/supabase/types";
 
 const NEWS_CATEGORIES = [
   { value: "International Meetings", label: "International Meetings" },
@@ -51,9 +55,36 @@ function FeaturedNews({ item }: { item: NewsItem }) {
 }
 
 export default function NewsPage() {
-  const { t } = useLocale();
-  const news = NEWS();
-  const msgs = MSGS();
+  const { t, locale } = useLocale();
+  const [liveItems, setLiveItems] = useState<ContentItem[]>([]);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase
+      .from("content_items")
+      .select("*")
+      .in("type", ["news", "statement"])
+      .eq("published", true)
+      .order("event_date", { ascending: false, nullsFirst: false })
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        if (data) setLiveItems(data as ContentItem[]);
+      });
+  }, []);
+
+  const liveNews = useMemo(
+    () => liveItems.filter((i) => i.type === "news").map((i) => contentItemToNewsItem(i, locale === "ar" ? "ar" : "en")),
+    [liveItems, locale]
+  );
+  const liveMsgs = useMemo(
+    () => liveItems.filter((i) => i.type === "statement").map((i) => contentItemToNewsItem(i, locale === "ar" ? "ar" : "en")),
+    [liveItems, locale]
+  );
+
+  // Real content published from the admin panel appears first; the
+  // placeholder archive below fills the page until it's replaced.
+  const news = [...liveNews, ...NEWS()];
+  const msgs = [...liveMsgs, ...MSGS()];
 
   return (
     <div>
