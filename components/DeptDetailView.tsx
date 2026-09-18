@@ -2,9 +2,14 @@
 
 import Link from "next/link";
 import { useLocale } from "@/lib/i18n";
-import { Dept, NEWS } from "@/lib/data";
+import { Dept, DEPTS, NEWS } from "@/lib/data";
 import { NewsCard } from "./NewsCard";
 import { useTheme } from "@/lib/theme";
+import { usePageContent } from "@/lib/pageContent/read";
+import { getPageSchema } from "@/lib/pageContent/pageSchemas";
+import { resolveDept, type DeptOverride } from "@/lib/pageContent/departments";
+
+const DEPARTMENTS_SCHEMA = getPageSchema("departments")!;
 
 const OVERVIEW = [
   "[Overview of the deputy department, its municipal mandate and the services it is responsible for.]",
@@ -18,9 +23,13 @@ const PROJECTS = [
 const PARTNERS = ["[Partner municipality]", "[International municipal network]", "[Technical cooperation programme]"];
 const MEETINGS = ["[Meeting with a partner city delegation]", "[Working session with counterparts abroad]", "[Delegation hosted by the department in Qom]"];
 
-export default function DeptDetailView({ dept }: { dept: Dept }) {
+export default function DeptDetailView({ dept: staticDept }: { dept: Dept }) {
   const { t, locale } = useLocale();
   const { theme } = useTheme();
+  const pageData = usePageContent("departments", DEPARTMENTS_SCHEMA);
+  const overrides = pageData?.departments as DeptOverride[] | undefined;
+  const index = DEPTS().findIndex((d) => d.id === staticDept.id);
+  const dept = resolveDept(staticDept, index, overrides, locale, t);
   const accent = theme === "dark" ? dept.hero : dept.ink;
   const news = NEWS().filter((x) => x.cat === dept.newsCat).sort((a, b) => b.stamp - a.stamp).slice(0, 3);
 
@@ -48,11 +57,11 @@ export default function DeptDetailView({ dept }: { dept: Dept }) {
             <span className="text-[rgba(250,248,244,.30)]">{locale === "en" ? "›" : "‹"}</span>
             <Link href="/departments" className="text-[rgba(250,248,244,.62)]">{t("Municipal Deputy Departments")}</Link>
             <span className="text-[rgba(250,248,244,.30)]">{locale === "en" ? "›" : "‹"}</span>
-            <span className="text-[rgba(250,248,244,.92)]">{t(dept.title)}</span>
+            <span className="text-[rgba(250,248,244,.92)]">{dept.title}</span>
           </nav>
           <div className="font-mono mb-4 text-[11px] tracking-[.2em] uppercase" style={{ color: dept.hero }}>{t("Deputy department")}&nbsp;·&nbsp;{dept.no}</div>
-          <h1 className="m-0 mb-5 max-w-[880px] font-serif font-medium text-bg text-pretty" style={{ fontSize: "clamp(31px, 4.1vw, 54px)", lineHeight: 1.1, letterSpacing: "-.015em" }}>{t(dept.title)}</h1>
-          <p className="m-0 max-w-[640px] text-[17px] leading-[1.7] text-[rgba(250,248,244,.78)] text-pretty">{t(dept.mission)}</p>
+          <h1 className="m-0 mb-5 max-w-[880px] font-serif font-medium text-bg text-pretty" style={{ fontSize: "clamp(31px, 4.1vw, 54px)", lineHeight: 1.1, letterSpacing: "-.015em" }}>{dept.title}</h1>
+          <p className="m-0 max-w-[640px] text-[17px] leading-[1.7] text-[rgba(250,248,244,.78)] text-pretty">{dept.mission}</p>
         </div>
       </div>
 
@@ -70,10 +79,10 @@ export default function DeptDetailView({ dept }: { dept: Dept }) {
           <h2 className="m-0 mb-6 font-serif font-medium" style={{ fontSize: "clamp(24px, 2.5vw, 33px)" }}>{t("International responsibilities")}</h2>
           <div className="grid gap-px border border-navy/[.12] dark:border-dark-line bg-navy/[.12] dark:bg-dark-fill">
             {dept.interests.map((r, i) => (
-              <div key={r} className="flex items-baseline gap-4.5 bg-white dark:bg-dark-surface-2 px-6.5 py-6">
+              <div key={`${r}-${i}`} className="flex items-baseline gap-4.5 bg-white dark:bg-dark-surface-2 px-6.5 py-6">
                 <span className="font-mono shrink-0 text-[11.5px] tracking-[.12em]" style={{ color: accent }}>{String(i + 1).padStart(2, "0")}</span>
                 <span className="grid min-w-0 gap-1.5">
-                  <span className="font-serif text-lg leading-[1.35] text-navy dark:text-dark-ink">{t(r)}</span>
+                  <span className="font-serif text-lg leading-[1.35] text-navy dark:text-dark-ink">{r}</span>
                   <span className="text-[13.5px] leading-[1.65] text-slate dark:text-dark-ink-dim">{t("[Scope of international cooperation in this area.]")}</span>
                 </span>
               </div>

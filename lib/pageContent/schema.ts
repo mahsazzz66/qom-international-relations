@@ -14,6 +14,9 @@ export type PageSchema = {
   page: string;
   title: string;
   description?: string;
+  // Path of the live public page this schema edits, e.g. "/about-qom". Lets
+  // the admin open the real page next to the editor to see the result.
+  url?: string;
   fields: FieldDef[];
 };
 

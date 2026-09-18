@@ -148,6 +148,25 @@ export default function PcwgPage() {
   const areas = mergeTitleBody(pageData?.areas as TitleBodyOverride[] | undefined, AREAS, locale, t);
   const activityTypes = mergeTitleBody(pageData?.activityTypes as TitleBodyOverride[] | undefined, ACTIVITY_TYPES, locale, t);
 
+  const sessionOverrides = pageData?.sessions as { title?: BilingualText; format?: BilingualText }[] | undefined;
+  const sessions =
+    sessionOverrides && sessionOverrides.length > 0
+      ? sessionOverrides.map((o, i) => [
+          pickText(o.title, locale, SESSIONS[i] ? t(SESSIONS[i][0]) : ""),
+          pickText(o.format, locale, SESSIONS[i] ? t(SESSIONS[i][1]) : ""),
+        ] as [string, string])
+      : SESSIONS.map(([title, fmt]) => [t(title), t(fmt)] as [string, string]);
+
+  const docOverrides = pageData?.docs as { category?: BilingualText; title?: BilingualText }[] | undefined;
+  const docs =
+    docOverrides && docOverrides.length > 0
+      ? docOverrides.map((o, i) => ({
+          cat: pickText(o.category, locale, DOCS[i] ? t(DOCS[i][0]) : ""),
+          title: pickText(o.title, locale, DOCS[i] ? t(DOCS[i][1]) : ""),
+          href: DOCS[i]?.[2] ?? "/media",
+        }))
+      : DOCS.map(([cat, title, href]) => ({ cat: t(cat), title: t(title), href }));
+
   return (
     <div>
       <div className="relative overflow-hidden bg-navy dark:bg-dark-navy">
@@ -265,21 +284,21 @@ export default function PcwgPage() {
           ))}
         </div>
         <div className="mb-11 grid gap-px bg-navy/[.12] dark:bg-dark-fill">
-          {SESSIONS.map(([title, fmt]) => (
-            <div key={title} className="grid items-center gap-5 bg-white dark:bg-dark-surface-2 px-7.5 py-6.5" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))" }}>
-              <h3 className="m-0 font-serif text-lg font-medium">{t(title)}</h3>
-              <div className="text-[13.5px] text-slate dark:text-dark-ink-dim">{t(fmt)}</div>
+          {sessions.map(([title, fmt], i) => (
+            <div key={`${title}-${i}`} className="grid items-center gap-5 bg-white dark:bg-dark-surface-2 px-7.5 py-6.5" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))" }}>
+              <h3 className="m-0 font-serif text-lg font-medium">{title}</h3>
+              <div className="text-[13.5px] text-slate dark:text-dark-ink-dim">{fmt}</div>
               <div className="font-mono text-[12.5px] text-gray dark:text-dark-ink-dimmer">{t("[date]")}</div>
             </div>
           ))}
         </div>
         <h3 className="m-0 mb-6 font-serif font-medium" style={{ fontSize: "clamp(22px, 2.2vw, 30px)" }}>{t("Documents")}</h3>
         <div className="grid gap-5.5" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" }}>
-          {DOCS.map(([cat, title, href]) => (
-            <div key={title} className="border border-navy/[.12] dark:border-dark-line bg-white dark:bg-dark-surface-2 p-7">
-              <div className="font-mono mb-3 text-[10.5px] tracking-[.14em] text-teal dark:text-dark-teal uppercase">{t(cat)}</div>
-              <h4 className="m-0 mb-3 font-serif text-lg font-medium">{t(title)}</h4>
-              <Link href={href} className="text-[13px] font-semibold">{t("Download PDF →")}</Link>
+          {docs.map((d, i) => (
+            <div key={`${d.title}-${i}`} className="border border-navy/[.12] dark:border-dark-line bg-white dark:bg-dark-surface-2 p-7">
+              <div className="font-mono mb-3 text-[10.5px] tracking-[.14em] text-teal dark:text-dark-teal uppercase">{d.cat}</div>
+              <h4 className="m-0 mb-3 font-serif text-lg font-medium">{d.title}</h4>
+              <Link href={d.href} className="text-[13px] font-semibold">{t("Download PDF →")}</Link>
             </div>
           ))}
         </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { emptyListItem, withDefaults, type FieldDef, type PageSchema, type BilingualText } from "@/lib/pageContent/schema";
 
@@ -228,6 +229,15 @@ export default function PageContentEditor({ schema }: { schema: PageSchema }) {
         <div>
           <h1 className="font-serif text-2xl font-medium text-navy">{schema.title}</h1>
           {schema.description && <p className="mt-1 text-sm text-gray">{schema.description}</p>}
+          {schema.url && (
+            <Link
+              href={schema.url}
+              target="_blank"
+              className="mt-1.5 inline-block text-[12.5px] font-semibold text-navy/70 hover:text-navy hover:underline"
+            >
+              مشاهده این صفحه در سایت ↗
+            </Link>
+          )}
         </div>
         <div className="flex items-center gap-3">
           {justSaved && <span className="text-[12.5px] text-teal">ذخیره شد ✓</span>}

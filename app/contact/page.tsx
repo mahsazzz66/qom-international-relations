@@ -8,6 +8,7 @@ import { getPageSchema } from "@/lib/pageContent/pageSchemas";
 import type { BilingualText } from "@/lib/pageContent/schema";
 
 const CONTACT_SCHEMA = getPageSchema("contact")!;
+type FaqOverride = { q?: BilingualText; a?: BilingualText };
 
 const SOCIAL = [
   { label: "Instagram", d: "M12 2.2c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.42.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41-.56-.22-.96-.48-1.38-.9-.42-.42-.68-.82-.9-1.38-.16-.42-.36-1.06-.41-2.23C2.21 15.58 2.2 15.2 2.2 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.06-.36 2.23-.41C8.42 2.21 8.8 2.2 12 2.2zm0 1.8c-3.14 0-3.51.01-4.75.07-.9.04-1.38.19-1.71.31-.43.17-.73.37-1.05.69-.32.32-.52.62-.69 1.05-.12.33-.27.81-.31 1.71C3.43 8.49 3.42 8.86 3.42 12s.01 3.51.07 4.75c.04.9.19 1.38.31 1.71.17.43.37.73.69 1.05.32.32.62.52 1.05.69.33.12.81.27 1.71.31 1.24.06 1.61.07 4.75.07s3.51-.01 4.75-.07c.9-.04 1.38-.19 1.71-.31.43-.17.73-.37 1.05-.69.32-.32.52-.62.69-1.05.12-.33.27-.81.31-1.71.06-1.24.07-1.61.07-4.75s-.01-3.51-.07-4.75c-.04-.9-.19-1.38-.31-1.71a2.83 2.83 0 0 0-.69-1.05 2.83 2.83 0 0 0-1.05-.69c-.33-.12-.81-.27-1.71-.31C15.51 4.01 15.14 4 12 4zm0 3.05a4.95 4.95 0 1 1 0 9.9 4.95 4.95 0 0 1 0-9.9zm0 1.8a3.15 3.15 0 1 0 0 6.3 3.15 3.15 0 0 0 0-6.3zm5.15-3.2a1.16 1.16 0 1 1 0 2.32 1.16 1.16 0 0 1 0-2.32z" },
@@ -38,6 +39,14 @@ export default function ContactPage() {
   );
   const officeEmail = pickText(pageData?.email as BilingualText | undefined, locale, t("[official email address]"));
   const phone = pickText(pageData?.phone as BilingualText | undefined, locale, t("[official telephone number]"));
+  const faqOverrides = pageData?.faqs as FaqOverride[] | undefined;
+  const faqs =
+    faqOverrides && faqOverrides.length > 0
+      ? faqOverrides.map((o, i) => ({
+          q: pickText(o.q, locale, FAQS[i] ? t(FAQS[i].q) : ""),
+          a: pickText(o.a, locale, FAQS[i] ? t(FAQS[i].a) : ""),
+        }))
+      : FAQS.map((f) => ({ q: t(f.q), a: t(f.a) }));
   const [name, setName] = useState("");
   const [org, setOrg] = useState("");
   const [country, setCountry] = useState("");
@@ -153,12 +162,12 @@ export default function ContactPage() {
         <div className="mb-4 flex flex-wrap items-center gap-3"><span className="h-px w-7 bg-gold" /><span className="font-mono text-[11px] tracking-[.2em] text-gray dark:text-dark-ink-dimmer uppercase">{t("Guidance")}</span></div>
         <h2 className="m-0 mb-8 font-serif font-medium" style={{ fontSize: "clamp(26px, 2.8vw, 38px)" }}>{t("Frequently asked questions")}</h2>
         <div className="grid gap-px bg-navy/[.12] dark:bg-dark-fill">
-          {FAQS.map((f) => (
-            <details key={f.q} className="bg-white dark:bg-dark-surface-2">
+          {faqs.map((f, i) => (
+            <details key={`${f.q}-${i}`} className="bg-white dark:bg-dark-surface-2">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4.5 px-7 py-6 font-serif text-[17px] leading-[1.4]">
-                {t(f.q)}<span className="font-mono shrink-0 text-[15px] text-gold">+</span>
+                {f.q}<span className="font-mono shrink-0 text-[15px] text-gold">+</span>
               </summary>
-              <p className="m-0 max-w-[780px] px-7 pb-6.5 text-[14.5px] leading-[1.75] text-slate dark:text-dark-ink-dim">{t(f.a)}</p>
+              <p className="m-0 max-w-[780px] px-7 pb-6.5 text-[14.5px] leading-[1.75] text-slate dark:text-dark-ink-dim">{f.a}</p>
             </details>
           ))}
         </div>

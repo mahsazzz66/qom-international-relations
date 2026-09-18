@@ -4,6 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import PageHero from "@/components/PageHero";
 import { useLocale } from "@/lib/i18n";
+import { pickText, usePageContent } from "@/lib/pageContent/read";
+import { getPageSchema } from "@/lib/pageContent/pageSchemas";
+import type { BilingualText } from "@/lib/pageContent/schema";
+
+const FEEDBACK_SCHEMA = getPageSchema("feedback")!;
+type TestimonialOverride = { quote?: BilingualText; meta?: BilingualText };
 
 const VISITOR_TYPES = ["Pilgrim", "Tourist", "Official delegation", "Investor", "Researcher or student", "Media representative", "Resident of Qom"];
 const EXPERIENCE_TYPES = ["Urban services", "Cleanliness & sanitation", "Transport & access", "Hospitality & accommodation", "Signage & information", "Safety & security", "Digital services", "Cultural programmes"];
@@ -17,7 +23,22 @@ const TESTIMONIALS = [
 const emailOk = (v: string) => /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(v);
 
 export default function FeedbackPage() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
+  const pageData = usePageContent("feedback", FEEDBACK_SCHEMA);
+  const heroTitle = pickText(pageData?.hero_title as BilingualText | undefined, locale, t("Visitor Feedback"));
+  const heroDescription = pickText(
+    pageData?.hero_description as BilingualText | undefined,
+    locale,
+    t("Your experience helps us make Qom a more welcoming and internationally connected city.")
+  );
+  const testimonialOverrides = pageData?.testimonials as TestimonialOverride[] | undefined;
+  const testimonials =
+    testimonialOverrides && testimonialOverrides.length > 0
+      ? testimonialOverrides.map((o, i) => ({
+          quote: pickText(o.quote, locale, TESTIMONIALS[i] ? t(TESTIMONIALS[i].quote) : ""),
+          meta: pickText(o.meta, locale, TESTIMONIALS[i] ? t(TESTIMONIALS[i].meta) : ""),
+        }))
+      : TESTIMONIALS.map((ts) => ({ quote: t(ts.quote), meta: t(ts.meta) }));
   const [rating, setRating] = useState(0);
   const [types, setTypes] = useState<string[]>([]);
   const [experience, setExperience] = useState<string[]>([]);
@@ -67,8 +88,8 @@ export default function FeedbackPage() {
             <path d="m64 44 6 12 13 2-9.5 9.4 2.4 13.2L64 74.2 51.1 80.6l2.4-13.2L44 58l13-2z" fill="#C8A75D" stroke="none" />
           </svg>
         }
-        title={t("Visitor Feedback")}
-        description={t("Your experience helps us make Qom a more welcoming and internationally connected city.")}
+        title={heroTitle}
+        description={heroDescription}
       />
 
       <div className="border-b border-navy/10 dark:border-dark-line bg-white dark:bg-dark-surface-2">
@@ -203,10 +224,10 @@ export default function FeedbackPage() {
         <h2 className="m-0 mb-3 font-serif font-medium" style={{ fontSize: "clamp(26px, 2.6vw, 36px)" }}>{t("Testimonials")}</h2>
         <p className="m-0 mb-7.5 max-w-[660px] text-[15.5px] leading-[1.7] text-gray dark:text-dark-ink-dimmer">{t("Published with the author's permission. Entries appear here once submitted and approved by the department.")}</p>
         <div className="grid gap-6.5" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(290px, 1fr))" }}>
-          {TESTIMONIALS.map((ts) => (
-            <blockquote key={ts.quote} className="m-0 border border-navy/[.12] dark:border-dark-line bg-white dark:bg-dark-surface-2 p-8.5">
-              <p className="m-0 mb-5.5 font-serif text-lg leading-[1.6] text-pretty">&ldquo;{t(ts.quote)}&rdquo;</p>
-              <footer className="text-[13px] leading-[1.6] text-gray dark:text-dark-ink-dimmer">{t(ts.meta)}<br />{t("[Country]")}</footer>
+          {testimonials.map((ts, i) => (
+            <blockquote key={`${ts.quote}-${i}`} className="m-0 border border-navy/[.12] dark:border-dark-line bg-white dark:bg-dark-surface-2 p-8.5">
+              <p className="m-0 mb-5.5 font-serif text-lg leading-[1.6] text-pretty">&ldquo;{ts.quote}&rdquo;</p>
+              <footer className="text-[13px] leading-[1.6] text-gray dark:text-dark-ink-dimmer">{ts.meta}<br />{t("[Country]")}</footer>
             </blockquote>
           ))}
         </div>

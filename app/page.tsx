@@ -8,9 +8,10 @@ import HomePcwgMap from "@/components/home/HomePcwgMap";
 import HomeInvestmentTeaser from "@/components/home/HomeInvestmentTeaser";
 import HomeMedia from "@/components/home/HomeMedia";
 import { useLocale } from "@/lib/i18n";
-import { usePageContent } from "@/lib/pageContent/read";
+import { pickText, usePageContent } from "@/lib/pageContent/read";
 import { getPageSchema } from "@/lib/pageContent/pageSchemas";
 import type { HeroSlideOverride } from "@/components/HeroSlideshow";
+import type { BilingualText } from "@/lib/pageContent/schema";
 
 const HOME_SCHEMA = getPageSchema("home")!;
 
@@ -44,10 +45,76 @@ const COOPERATION_AREAS = [
   { title: "Knowledge Exchange", desc: "Sharing municipal experience in managing a city that receives pilgrims year-round." },
 ];
 
+type TitleSubOverride = { title?: BilingualText; sub?: BilingualText };
+type TitleBodyOverride = { title?: BilingualText; body?: BilingualText };
+type TitleDescOverride = { title?: BilingualText; desc?: BilingualText };
+
 export default function HomePage() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const pageData = usePageContent("home", HOME_SCHEMA);
   const slideOverrides = pageData?.slides as HeroSlideOverride[] | undefined;
+
+  const ribbonOverrides = pageData?.ribbon as TitleSubOverride[] | undefined;
+  const ribbon =
+    ribbonOverrides && ribbonOverrides.length > 0
+      ? ribbonOverrides.map((o, i) => ({
+          title: pickText(o.title, locale, RIBBON[i] ? t(RIBBON[i].title) : ""),
+          sub: pickText(o.sub, locale, RIBBON[i] ? t(RIBBON[i].sub) : ""),
+          href: RIBBON[i]?.href ?? "/",
+          icon: RIBBON[i]?.icon ?? RIBBON[0].icon,
+          color: RIBBON[i]?.color ?? RIBBON[0].color,
+        }))
+      : RIBBON.map((r) => ({ title: t(r.title), sub: t(r.sub), href: r.href, icon: r.icon, color: r.color }));
+
+  const aboutHeading = pickText(
+    pageData?.about_heading as BilingualText | undefined,
+    locale,
+    t("The municipality's official channel to the international community")
+  );
+  const aboutBody = pickText(
+    pageData?.about_body as BilingualText | undefined,
+    locale,
+    t("The department establishes and maintains relations with partner municipalities, international organisations and networks, receives foreign delegations, and connects Qom's six specialised deputy departments with their counterparts abroad.")
+  );
+
+  const missionVisionOverrides = pageData?.mission_vision as TitleBodyOverride[] | undefined;
+  const MISSION_VISION_DEFAULT = [
+    { title: "Mission", body: "To open and sustain municipal channels with cities and institutions abroad, and to make Qom's experience as a pilgrimage city available to international partners." },
+    { title: "Vision", body: "An internationally connected Qom, recognised as a reference city for cooperation among the world's pilgrimage destinations." },
+  ];
+  const missionVision =
+    missionVisionOverrides && missionVisionOverrides.length > 0
+      ? missionVisionOverrides.map((o, i) => ({
+          title: pickText(o.title, locale, MISSION_VISION_DEFAULT[i] ? t(MISSION_VISION_DEFAULT[i].title) : ""),
+          body: pickText(o.body, locale, MISSION_VISION_DEFAULT[i] ? t(MISSION_VISION_DEFAULT[i].body) : ""),
+        }))
+      : MISSION_VISION_DEFAULT.map((m) => ({ title: t(m.title), body: t(m.body) }));
+
+  const OBJECTIVES_DEFAULT = ["Durable municipal partnerships", "Leadership of the Working Group", "Cooperation routed to the right department", "Facilitation of investment and exchange"];
+  const objectivesText = pickText(pageData?.objectives as BilingualText | undefined, locale, "");
+  const objectives = objectivesText
+    ? objectivesText.split("\n").map((line) => line.trim()).filter(Boolean)
+    : OBJECTIVES_DEFAULT.map((o) => t(o));
+
+  const cooperationOverrides = pageData?.cooperation_areas as TitleDescOverride[] | undefined;
+  const cooperationAreas =
+    cooperationOverrides && cooperationOverrides.length > 0
+      ? cooperationOverrides.map((o, i) => ({
+          title: pickText(o.title, locale, COOPERATION_AREAS[i] ? t(COOPERATION_AREAS[i].title) : ""),
+          desc: pickText(o.desc, locale, COOPERATION_AREAS[i] ? t(COOPERATION_AREAS[i].desc) : ""),
+        }))
+      : COOPERATION_AREAS.map((c) => ({ title: t(c.title), desc: t(c.desc) }));
+
+  const pcwgHeading = pickText(
+    pageData?.pcwg_heading as BilingualText | undefined,
+    locale,
+    t("Qom Municipality is the President of the Pilgrimage Cities Working Group")
+  );
+  const pcwgMandate = pickText(
+    pageData?.pcwg_mandate as BilingualText | undefined,
+    locale,
+    t("A standing platform for cities whose urban life is shaped by pilgrimage — coordinating dialogue, shared practice and joint programmes among member municipalities.")
+  );
 
   return (
     <div>
@@ -59,14 +126,14 @@ export default function HomePage() {
       <section className="border-b border-navy/10 dark:border-dark-line bg-bg dark:bg-dark-surface">
         <div className="mx-auto max-w-[1280px] px-6">
           <div data-ribbon className="grid gap-px bg-navy/10 dark:bg-dark-fill" style={{ gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}>
-            {RIBBON.map((r) => (
-              <Link key={r.title} href={r.href} className="flex min-w-0 items-center gap-[13px] bg-bg dark:bg-dark-surface px-5 py-3.5 transition-colors hover:bg-gold/[.09]">
+            {ribbon.map((r, i) => (
+              <Link key={`${r.title}-${i}`} href={r.href} className="flex min-w-0 items-center gap-[13px] bg-bg dark:bg-dark-surface px-5 py-3.5 transition-colors hover:bg-gold/[.09]">
                 <span aria-hidden className="block h-[22px] shrink-0" style={{ color: r.color }}>
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round">{r.icon}</svg>
                 </span>
                 <span className="grid min-w-0 gap-0.5">
-                  <span className="text-[13.5px] leading-[1.3] font-semibold text-navy dark:text-dark-ink">{t(r.title)}</span>
-                  <span className="font-mono text-[11px] leading-[1.45] tracking-[.04em] text-gray dark:text-dark-ink-dimmer">{t(r.sub)}</span>
+                  <span className="text-[13.5px] leading-[1.3] font-semibold text-navy dark:text-dark-ink">{r.title}</span>
+                  <span className="font-mono text-[11px] leading-[1.45] tracking-[.04em] text-gray dark:text-dark-ink-dimmer">{r.sub}</span>
                 </span>
               </Link>
             ))}
@@ -125,28 +192,25 @@ export default function HomePage() {
                 <span className="font-mono text-[11px] tracking-[.2em] text-gray dark:text-dark-ink-dimmer uppercase">{t("About us")}</span>
               </div>
               <h2 className="m-0 max-w-[620px] font-serif font-medium text-pretty" style={{ fontSize: "clamp(30px, 3.4vw, 46px)", lineHeight: 1.12, letterSpacing: "-.015em" }}>
-                {t("The municipality's official channel to the international community")}
+                {aboutHeading}
               </h2>
             </div>
             <div>
               <p className="m-0 mb-6.5 max-w-[520px] text-[17px] leading-[1.75] text-slate dark:text-dark-ink-dim text-pretty">
-                {t("The department establishes and maintains relations with partner municipalities, international organisations and networks, receives foreign delegations, and connects Qom's six specialised deputy departments with their counterparts abroad.")}
+                {aboutBody}
               </p>
               <Link href="/about" className="border-b border-gold pb-1.5 text-[13.5px] font-semibold">{t("Read the full profile →")}</Link>
             </div>
           </Reveal>
 
           <Reveal className="mb-16 grid border-t border-navy/[.14] dark:border-dark-line" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))" }}>
-            {[
-              { n: "01", title: "Mission", body: "To open and sustain municipal channels with cities and institutions abroad, and to make Qom's experience as a pilgrimage city available to international partners." },
-              { n: "02", title: "Vision", body: "An internationally connected Qom, recognised as a reference city for cooperation among the world's pilgrimage destinations." },
-            ].map((b, i) => (
-              <div key={b.n} className={`py-10 ${i === 0 ? "pr-11 border-r border-navy/10 dark:border-dark-line" : "px-11 border-r border-navy/10 dark:border-dark-line"}`}>
+            {missionVision.map((b, i) => (
+              <div key={`${b.title}-${i}`} className={`py-10 ${i === 0 ? "pr-11 border-r border-navy/10 dark:border-dark-line" : "px-11 border-r border-navy/10 dark:border-dark-line"}`}>
                 <div className="mb-[18px] flex items-baseline gap-3.5">
-                  <span className="font-mono text-xs text-gold">{b.n}</span>
-                  <h3 className="m-0 font-serif text-2xl font-medium">{t(b.title)}</h3>
+                  <span className="font-mono text-xs text-gold">{String(i + 1).padStart(2, "0")}</span>
+                  <h3 className="m-0 font-serif text-2xl font-medium">{b.title}</h3>
                 </div>
-                <p className="m-0 text-[15.5px] leading-[1.75] text-slate dark:text-dark-ink-dim">{t(b.body)}</p>
+                <p className="m-0 text-[15.5px] leading-[1.75] text-slate dark:text-dark-ink-dim">{b.body}</p>
               </div>
             ))}
             <div className="py-10 pl-11">
@@ -155,8 +219,8 @@ export default function HomePage() {
                 <h3 className="m-0 font-serif text-2xl font-medium">{t("Objectives")}</h3>
               </div>
               <div className="grid gap-3 text-[15px] leading-[1.6] text-slate dark:text-dark-ink-dim">
-                {["Durable municipal partnerships", "Leadership of the Working Group", "Cooperation routed to the right department", "Facilitation of investment and exchange"].map((o) => (
-                  <div key={o} className="flex gap-3"><span className="shrink-0 text-gold">—</span>{t(o)}</div>
+                {objectives.map((o, i) => (
+                  <div key={`${o}-${i}`} className="flex gap-3"><span className="shrink-0 text-gold">—</span>{o}</div>
                 ))}
               </div>
             </div>
@@ -202,11 +266,11 @@ export default function HomePage() {
           </Reveal>
 
           <div className="grid gap-px bg-navy/[.12] dark:bg-dark-fill" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}>
-            {COOPERATION_AREAS.map((c, i) => (
-              <div key={c.title} data-card className="bg-white dark:bg-dark-surface-2 px-[30px] py-[34px] transition-colors hover:bg-navy">
+            {cooperationAreas.map((c, i) => (
+              <div key={`${c.title}-${i}`} data-card className="bg-white dark:bg-dark-surface-2 px-[30px] py-[34px] transition-colors hover:bg-navy">
                 <div data-cardnum className="font-mono mb-6.5 text-xs tracking-[.12em] text-gold">{String(i + 1).padStart(2, "0")}</div>
-                <h3 data-cardtitle className="m-0 mb-3 font-serif text-xl font-medium transition-colors">{t(c.title)}</h3>
-                <p data-cardbody className="m-0 text-[14.5px] leading-[1.65] text-slate dark:text-dark-ink-dim transition-colors">{t(c.desc)}</p>
+                <h3 data-cardtitle className="m-0 mb-3 font-serif text-xl font-medium transition-colors">{c.title}</h3>
+                <p data-cardbody className="m-0 text-[14.5px] leading-[1.65] text-slate dark:text-dark-ink-dim transition-colors">{c.desc}</p>
               </div>
             ))}
           </div>
@@ -222,7 +286,7 @@ export default function HomePage() {
               <span className="font-mono text-[11px] tracking-[.2em] text-gold uppercase">{t("Pilgrimage Cities Working Group")}</span>
             </div>
             <h2 className="m-0 mb-[34px] max-w-[900px] font-serif font-medium text-pretty" style={{ fontSize: "clamp(32px, 3.8vw, 52px)", lineHeight: 1.1, letterSpacing: "-.015em" }}>
-              {t("Qom Municipality is the President of the Pilgrimage Cities Working Group")}
+              {pcwgHeading}
             </h2>
             <div className="grid gap-px bg-bg/[.16]" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}>
               <div className="bg-gold p-7.5 text-navy">
@@ -236,7 +300,7 @@ export default function HomePage() {
               <div className="bg-bg/[.03] p-7.5">
                 <div className="font-mono mb-3 text-[11px] tracking-[.18em] text-gold uppercase">{t("Mandate")}</div>
                 <p className="m-0 text-[14.5px] leading-[1.7] text-[rgba(250,248,244,.78)]">
-                  {t("A standing platform for cities whose urban life is shaped by pilgrimage — coordinating dialogue, shared practice and joint programmes among member municipalities.")}
+                  {pcwgMandate}
                 </p>
               </div>
             </div>

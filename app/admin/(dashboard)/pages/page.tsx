@@ -13,18 +13,36 @@ export default function AdminPagesListPage() {
 
       <div className="grid gap-4 sm:grid-cols-2">
         {PAGE_SCHEMAS.map((schema) => (
-          <Link
+          <div
             key={schema.page}
-            href={`/admin/pages/${schema.page}`}
             className="group rounded-2xl border border-navy/10 bg-white p-5 shadow-sm transition hover:border-gold/50 hover:shadow-md"
           >
-            <h2 className="font-serif text-lg font-medium text-navy group-hover:text-gold">
-              {schema.title}
-            </h2>
-            {schema.description && (
-              <p className="mt-1.5 text-[13px] leading-6 text-gray">{schema.description}</p>
-            )}
-          </Link>
+            <Link href={`/admin/pages/${schema.page}`} className="block">
+              <h2 className="font-serif text-lg font-medium text-navy group-hover:text-gold">
+                {schema.title}
+              </h2>
+              {schema.description && (
+                <p className="mt-1.5 text-[13px] leading-6 text-gray">{schema.description}</p>
+              )}
+            </Link>
+            <div className="mt-3 flex items-center gap-3 border-t border-navy/10 pt-3">
+              <Link
+                href={`/admin/pages/${schema.page}`}
+                className="text-[12.5px] font-semibold text-gold hover:underline"
+              >
+                ویرایش
+              </Link>
+              {schema.url && (
+                <Link
+                  href={schema.url}
+                  target="_blank"
+                  className="text-[12.5px] font-semibold text-navy/70 hover:text-navy hover:underline"
+                >
+                  مشاهده در سایت ↗
+                </Link>
+              )}
+            </div>
+          </div>
         ))}
       </div>
     </div>

@@ -7,12 +7,13 @@ import type { PageSchema } from "./schema";
 export const PAGE_SCHEMAS: PageSchema[] = [
   {
     page: "home",
-    title: "صفحه اصلی — اسلایدشو هیرو",
-    description: "اسلایدهای بالای صفحه اول سایت (عنوان، توضیح و تصویر پس‌زمینه هر اسلاید).",
+    url: "/",
+    title: "صفحه اصلی",
+    description: "اسلایدشو، نوار میانبرها، بخش درباره ما، حوزه‌های همکاری و بخش کارگروه شهرهای زیارتی در صفحه اول.",
     fields: [
       {
         key: "slides",
-        label: "اسلایدها",
+        label: "اسلایدهای هیرو",
         type: "list",
         itemLabel: "اسلاید",
         fields: [
@@ -21,10 +22,46 @@ export const PAGE_SCHEMAS: PageSchema[] = [
           { key: "image", label: "تصویر پس‌زمینه", type: "image" },
         ],
       },
+      {
+        key: "ribbon",
+        label: "نوار میانبرها (زیر هیرو)",
+        type: "list",
+        itemLabel: "میانبر",
+        fields: [
+          { key: "title", label: "عنوان", type: "text" },
+          { key: "sub", label: "زیرعنوان", type: "text" },
+        ],
+      },
+      { key: "about_heading", label: "عنوان بخش «درباره ما»", type: "text" },
+      { key: "about_body", label: "متن بخش «درباره ما»", type: "textarea" },
+      {
+        key: "mission_vision",
+        label: "مأموریت و چشم‌انداز",
+        type: "list",
+        itemLabel: "مورد",
+        fields: [
+          { key: "title", label: "عنوان (مثلاً Mission)", type: "text" },
+          { key: "body", label: "توضیح", type: "textarea" },
+        ],
+      },
+      { key: "objectives", label: "اهداف (هر مورد در یک خط جدید)", type: "textarea" },
+      {
+        key: "cooperation_areas",
+        label: "حوزه‌های همکاری بین‌المللی",
+        type: "list",
+        itemLabel: "حوزه",
+        fields: [
+          { key: "title", label: "عنوان", type: "text" },
+          { key: "desc", label: "توضیح", type: "textarea" },
+        ],
+      },
+      { key: "pcwg_heading", label: "عنوان بخش کارگروه شهرهای زیارتی", type: "text" },
+      { key: "pcwg_mandate", label: "توضیح مأموریت کارگروه", type: "textarea" },
     ],
   },
   {
     page: "about",
+    url: "/about",
     title: "درباره ما",
     description: "متن معرفی، اهداف، ساختار سازمانی و ارکان استراتژی.",
     fields: [
@@ -64,6 +101,7 @@ export const PAGE_SCHEMAS: PageSchema[] = [
   },
   {
     page: "about-qom",
+    url: "/about-qom",
     title: "درباره قم",
     description: "آمار شهر، جاذبه‌های گردشگری و اطلاعات بازدید.",
     fields: [
@@ -117,6 +155,7 @@ export const PAGE_SCHEMAS: PageSchema[] = [
   },
   {
     page: "pcwg",
+    url: "/pcwg",
     title: "کارگروه شهرهای زیارتی (PCWG)",
     description: "شهرهای عضو، شهرهای پیشنهادی، حوزه‌های همکاری و انواع فعالیت.",
     fields: [
@@ -164,10 +203,100 @@ export const PAGE_SCHEMAS: PageSchema[] = [
           { key: "body", label: "توضیح", type: "textarea" },
         ],
       },
+      {
+        key: "sessions",
+        label: "نشست‌ها",
+        type: "list",
+        itemLabel: "نشست",
+        fields: [
+          { key: "title", label: "عنوان", type: "text" },
+          { key: "format", label: "فرمت (مثلاً Hosted in Qom)", type: "text" },
+        ],
+      },
+      {
+        key: "docs",
+        label: "اسناد",
+        type: "list",
+        itemLabel: "سند",
+        fields: [
+          { key: "category", label: "دسته‌بندی", type: "text" },
+          { key: "title", label: "عنوان", type: "text" },
+        ],
+      },
+    ],
+  },
+  {
+    page: "meetings",
+    url: "/meetings",
+    title: "جلسات بین‌المللی در قم",
+    description: "نشست‌های میزبانی‌شده در قم، آنلاین و ترکیبی.",
+    fields: [
+      { key: "hero_title", label: "عنوان اصلی صفحه", type: "text" },
+      { key: "hero_description", label: "توضیح زیر عنوان", type: "textarea" },
+      {
+        key: "hosted",
+        label: "میزبانی‌شده در قم",
+        type: "list",
+        itemLabel: "نشست",
+        fields: [
+          { key: "title", label: "عنوان", type: "text" },
+          { key: "body", label: "توضیح", type: "textarea" },
+          { key: "format", label: "فرمت", type: "text" },
+          { key: "location", label: "مکان", type: "text" },
+          { key: "participants", label: "شرکت‌کنندگان", type: "text" },
+        ],
+      },
+      {
+        key: "online",
+        label: "آنلاین از قم",
+        type: "list",
+        itemLabel: "نشست",
+        fields: [
+          { key: "title", label: "عنوان", type: "text" },
+          { key: "body", label: "توضیح", type: "textarea" },
+          { key: "format", label: "فرمت", type: "text" },
+          { key: "location", label: "مکان", type: "text" },
+          { key: "participants", label: "شرکت‌کنندگان", type: "text" },
+        ],
+      },
+      {
+        key: "hybrid",
+        label: "ترکیبی",
+        type: "list",
+        itemLabel: "نشست",
+        fields: [
+          { key: "title", label: "عنوان", type: "text" },
+          { key: "body", label: "توضیح", type: "textarea" },
+          { key: "format", label: "فرمت", type: "text" },
+          { key: "location", label: "مکان", type: "text" },
+          { key: "participants", label: "شرکت‌کنندگان", type: "text" },
+        ],
+      },
+    ],
+  },
+  {
+    page: "feedback",
+    url: "/feedback",
+    title: "بازخورد بازدیدکنندگان",
+    description: "متن معرفی صفحه و نظرات منتشرشده.",
+    fields: [
+      { key: "hero_title", label: "عنوان اصلی صفحه", type: "text" },
+      { key: "hero_description", label: "توضیح زیر عنوان", type: "textarea" },
+      {
+        key: "testimonials",
+        label: "نظرات بازدیدکنندگان",
+        type: "list",
+        itemLabel: "نظر",
+        fields: [
+          { key: "quote", label: "متن نظر", type: "textarea" },
+          { key: "meta", label: "نوع بازدیدکننده", type: "text" },
+        ],
+      },
     ],
   },
   {
     page: "departments",
+    url: "/departments",
     title: "دپارتمان‌های شهرداری",
     description: "توضیح هر دپارتمان و حوزه‌های همکاری بین‌المللی آن.",
     fields: [
@@ -178,7 +307,8 @@ export const PAGE_SCHEMAS: PageSchema[] = [
         itemLabel: "دپارتمان",
         fields: [
           { key: "title", label: "عنوان", type: "text" },
-          { key: "listing", label: "توضیح", type: "textarea" },
+          { key: "listing", label: "توضیح (در فهرست دپارتمان‌ها)", type: "textarea" },
+          { key: "mission", label: "توضیح (در صفحه اختصاصی دپارتمان)", type: "textarea" },
           { key: "interests", label: "حوزه‌های همکاری (هر مورد در یک خط جدید)", type: "textarea" },
         ],
       },
@@ -186,6 +316,7 @@ export const PAGE_SCHEMAS: PageSchema[] = [
   },
   {
     page: "memberships",
+    url: "/memberships",
     title: "عضویت‌ها و شبکه‌های بین‌المللی",
     description: "سازمان‌ها و شبکه‌هایی که شهرداری قم در آن‌ها عضو است.",
     fields: [
@@ -205,6 +336,7 @@ export const PAGE_SCHEMAS: PageSchema[] = [
   },
   {
     page: "culture",
+    url: "/culture",
     title: "هفته‌های فرهنگی و جشنواره‌ها",
     description: "رویداد فرهنگی اصلی و فهرست جشنواره‌ها.",
     fields: [
@@ -227,6 +359,7 @@ export const PAGE_SCHEMAS: PageSchema[] = [
   },
   {
     page: "cooperation",
+    url: "/cooperation",
     title: "همکاری‌های بین‌المللی",
     description: "حوزه‌های همکاری، توافق‌نامه‌ها و مراحل همکاری با شهرداری قم.",
     fields: [
@@ -257,12 +390,23 @@ export const PAGE_SCHEMAS: PageSchema[] = [
   },
   {
     page: "contact",
+    url: "/contact",
     title: "اطلاعات تماس",
-    description: "آدرس، ایمیل و شماره تماس دفتر روابط بین‌الملل.",
+    description: "آدرس، ایمیل، شماره تماس و سوالات متداول دفتر روابط بین‌الملل.",
     fields: [
       { key: "address", label: "آدرس", type: "textarea" },
       { key: "email", label: "ایمیل رسمی", type: "text" },
       { key: "phone", label: "شماره تماس", type: "text" },
+      {
+        key: "faqs",
+        label: "سوالات متداول",
+        type: "list",
+        itemLabel: "سوال",
+        fields: [
+          { key: "q", label: "سوال", type: "text" },
+          { key: "a", label: "پاسخ", type: "textarea" },
+        ],
+      },
     ],
   },
 ];

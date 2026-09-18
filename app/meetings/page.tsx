@@ -3,6 +3,50 @@
 import Link from "next/link";
 import PageHero from "@/components/PageHero";
 import { useLocale } from "@/lib/i18n";
+import { pickText, usePageContent } from "@/lib/pageContent/read";
+import { getPageSchema } from "@/lib/pageContent/pageSchemas";
+import type { BilingualText } from "@/lib/pageContent/schema";
+
+const MEETINGS_SCHEMA = getPageSchema("meetings")!;
+
+type MeetingOverride = {
+  title?: BilingualText;
+  body?: BilingualText;
+  format?: BilingualText;
+  location?: BilingualText;
+  participants?: BilingualText;
+};
+
+type MeetingRowData = { title: string; body: string; format: string; location: string; participants: string };
+
+function mergeMeetings(
+  overrides: MeetingOverride[] | undefined,
+  fallback: MeetingRowData[],
+  locale: "en" | "ar",
+  t: (s: string) => string
+): MeetingRowData[] {
+  if (!overrides || overrides.length === 0) return fallback.map((f) => ({
+    title: t(f.title), body: t(f.body), format: t(f.format), location: t(f.location), participants: t(f.participants),
+  }));
+  return overrides.map((o, i) => ({
+    title: pickText(o.title, locale, fallback[i] ? t(fallback[i].title) : ""),
+    body: pickText(o.body, locale, fallback[i] ? t(fallback[i].body) : ""),
+    format: pickText(o.format, locale, fallback[i] ? t(fallback[i].format) : ""),
+    location: pickText(o.location, locale, fallback[i] ? t(fallback[i].location) : ""),
+    participants: pickText(o.participants, locale, fallback[i] ? t(fallback[i].participants) : ""),
+  }));
+}
+
+const HOSTED_DEFAULT: MeetingRowData[] = [
+  { title: "[Working Group plenary session]", body: "Agenda, participating delegations and adopted outcomes — to be provided by the department.", format: "In-person", location: "[venue], Qom", participants: "[participating cities]" },
+  { title: "[Delegation reception & bilateral talks]", body: "Programme of site visits and technical discussion with the visiting municipality.", format: "In-person", location: "[venue], Qom", participants: "[visiting delegation]" },
+];
+const ONLINE_DEFAULT: MeetingRowData[] = [
+  { title: "[Virtual technical meeting with partner municipalities]", body: "Session convened remotely by the permanent secretariat in Qom.", format: "Online", location: "Convened from Qom", participants: "[participating cities]" },
+];
+const HYBRID_DEFAULT: MeetingRowData[] = [
+  { title: "[Dialogue between partner municipalities]", body: "Delegations attending in person in Qom, with further members joining remotely.", format: "Hybrid", location: "[venue], Qom + online", participants: "[participating cities]" },
+];
 
 function MeetingRow({ tag, tagStyle, title, body, format, location, participants }: {
   tag: string; tagStyle: "gold" | "teal"; title: string; body: string; format: string; location: string; participants: string;
@@ -33,13 +77,23 @@ function MeetingRow({ tag, tagStyle, title, body, format, location, participants
 }
 
 export default function MeetingsPage() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
+  const pageData = usePageContent("meetings", MEETINGS_SCHEMA);
+  const heroTitle = pickText(pageData?.hero_title as BilingualText | undefined, locale, t("International Meetings in Qom"));
+  const heroDescription = pickText(
+    pageData?.hero_description as BilingualText | undefined,
+    locale,
+    t("Meetings, sessions and dialogues convened by Qom Municipality — in person in the city, online from Qom, or in hybrid format.")
+  );
+  const hosted = mergeMeetings(pageData?.hosted as MeetingOverride[] | undefined, HOSTED_DEFAULT, locale, t);
+  const online = mergeMeetings(pageData?.online as MeetingOverride[] | undefined, ONLINE_DEFAULT, locale, t);
+  const hybrid = mergeMeetings(pageData?.hybrid as MeetingOverride[] | undefined, HYBRID_DEFAULT, locale, t);
   return (
     <div>
       <PageHero
         page="meetings"
-        title={t("International Meetings in Qom")}
-        description={t("Meetings, sessions and dialogues convened by Qom Municipality — in person in the city, online from Qom, or in hybrid format.")}
+        title={heroTitle}
+        description={heroDescription}
         icon={
           <svg viewBox="0 0 200 140" width="100%" fill="none" stroke="#C8A75D" strokeWidth={1.1} strokeLinecap="round" strokeLinejoin="round">
             <ellipse cx="100" cy="76" rx="64" ry="29" />
@@ -56,18 +110,23 @@ export default function MeetingsPage() {
       <div className="mx-auto max-w-[1280px] px-6 pt-18 pb-24">
         <h2 className="m-0 mb-6 font-serif font-medium" style={{ fontSize: "clamp(24px, 2.3vw, 32px)" }}>{t("Hosted in Qom")}</h2>
         <div className="mb-15.5 grid gap-px bg-navy/[.12] dark:bg-dark-fill">
-          <MeetingRow tag="Hosted in Qom" tagStyle="gold" title="[Working Group plenary session]" body="Agenda, participating delegations and adopted outcomes — to be provided by the department." format="In-person" location="[venue], Qom" participants="[participating cities]" />
-          <MeetingRow tag="Hosted in Qom" tagStyle="gold" title="[Delegation reception & bilateral talks]" body="Programme of site visits and technical discussion with the visiting municipality." format="In-person" location="[venue], Qom" participants="[visiting delegation]" />
+          {hosted.map((m, i) => (
+            <MeetingRow key={i} tag="Hosted in Qom" tagStyle="gold" title={m.title} body={m.body} format={m.format} location={m.location} participants={m.participants} />
+          ))}
         </div>
 
         <h2 className="m-0 mb-6 font-serif font-medium" style={{ fontSize: "clamp(24px, 2.3vw, 32px)" }}>{t("Online from Qom")}</h2>
         <div className="mb-15.5 grid gap-px bg-navy/[.12] dark:bg-dark-fill">
-          <MeetingRow tag="Online from Qom" tagStyle="teal" title="[Virtual technical meeting with partner municipalities]" body="Session convened remotely by the permanent secretariat in Qom." format="Online" location="Convened from Qom" participants="[participating cities]" />
+          {online.map((m, i) => (
+            <MeetingRow key={i} tag="Online from Qom" tagStyle="teal" title={m.title} body={m.body} format={m.format} location={m.location} participants={m.participants} />
+          ))}
         </div>
 
         <h2 className="m-0 mb-6 font-serif font-medium" style={{ fontSize: "clamp(24px, 2.3vw, 32px)" }}>{t("Hybrid")}</h2>
         <div className="grid gap-px bg-navy/[.12] dark:bg-dark-fill">
-          <MeetingRow tag="Hosted in Qom" tagStyle="gold" title="[Dialogue between partner municipalities]" body="Delegations attending in person in Qom, with further members joining remotely." format="Hybrid" location="[venue], Qom + online" participants="[participating cities]" />
+          {hybrid.map((m, i) => (
+            <MeetingRow key={i} tag="Hosted in Qom" tagStyle="gold" title={m.title} body={m.body} format={m.format} location={m.location} participants={m.participants} />
+          ))}
         </div>
       </div>
     </div>

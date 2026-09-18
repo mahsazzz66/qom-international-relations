@@ -4,31 +4,18 @@ import Link from "next/link";
 import PageHero from "@/components/PageHero";
 import { useLocale } from "@/lib/i18n";
 import { DEPTS } from "@/lib/data";
-import { pickText, usePageContent } from "@/lib/pageContent/read";
+import { usePageContent } from "@/lib/pageContent/read";
 import { getPageSchema } from "@/lib/pageContent/pageSchemas";
-import type { BilingualText } from "@/lib/pageContent/schema";
+import { resolveDept, type DeptOverride } from "@/lib/pageContent/departments";
 
 const DEPARTMENTS_SCHEMA = getPageSchema("departments")!;
-
-type DeptOverride = { title?: BilingualText; listing?: BilingualText; interests?: BilingualText };
 
 export default function DepartmentsPage() {
   const { t, locale } = useLocale();
   const staticDepts = DEPTS();
   const pageData = usePageContent("departments", DEPARTMENTS_SCHEMA);
   const overrides = pageData?.departments as DeptOverride[] | undefined;
-  const depts = staticDepts.map((d, i) => {
-    const o = overrides?.[i];
-    const interestsText = pickText(o?.interests, locale, "");
-    return {
-      ...d,
-      title: pickText(o?.title, locale, t(d.title)),
-      listing: pickText(o?.listing, locale, t(d.listing)),
-      interests: interestsText
-        ? interestsText.split("\n").map((line) => line.trim()).filter(Boolean)
-        : d.interests.map((it) => t(it)),
-    };
-  });
+  const depts = staticDepts.map((d, i) => resolveDept(d, i, overrides, locale, t));
   return (
     <div>
       <PageHero
