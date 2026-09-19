@@ -44,11 +44,25 @@ export async function inviteStaffAction(formData: FormData) {
 
   const { data, error } = await admin.auth.admin.inviteUserByEmail(email, {
     data: { full_name: fullName },
-    redirectTo: `${siteUrl}/admin`,
+    // Must point at a page that (a) isn't guarded by the /admin login
+    // check, since the visitor has no session yet when they land here, and
+    // (b) actually consumes the invite token and lets them set a password —
+    // sending it straight to /admin left the token unused and the person
+    // stuck at the login screen. See app/admin/set-password/page.tsx.
+    redirectTo: `${siteUrl}/admin/set-password`,
   });
 
   if (error) {
-    return { error: error.message.includes("already registered") ? "این ایمیل قبلاً ثبت شده است." : error.message };
+    if (error.message.includes("already registered")) {
+      return { error: "این ایمیل قبلاً ثبت شده است." };
+    }
+    if (error.message.toLowerCase().includes("rate limit")) {
+      return {
+        error:
+          "سقف ارسال ایمیل توسط Supabase پر شده (پیش‌فرض خیلی کمه، معمولاً چند ایمیل در ساعت). چند دقیقه صبر کن و دوباره امتحان کن، یا SMTP اختصاصی رو در تنظیمات Supabase وصل کن تا این محدودیت برداشته بشه.",
+      };
+    }
+    return { error: error.message };
   }
 
   // Set the role (and name) chosen at invite time — the DB trigger already
